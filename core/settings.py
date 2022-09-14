@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-m10c@k!u5b!y@=n%!9dxmc4#=q)q$)tdu$6$&w#1p_y107=2c_
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in']
+    'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in', '127.0.0.1:8000', '127.0.0.1']
 
 
 # Application definition
@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django_tables2',
     'crispy_forms',
     'storages',
+    'rest_framework',
+    'chat'
 ]
 
 MIDDLEWARE = [
@@ -174,3 +176,10 @@ MEDIA_ROOT = BASE_DIR / 'mediafiles'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
+}
