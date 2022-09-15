@@ -9,3 +9,6 @@ class Message(models.Model):
     img = models.ImageField(upload_to='chat_images/', null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     uid = models.IntegerField()
+
+    class Meta:
+        ordering = ['-timestamp']
