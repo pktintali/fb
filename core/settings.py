@@ -28,6 +28,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in', '127.0.0.1:8000', '127.0.0.1']
+CORS_ALLOWED_ORIGINS = [
+    'https://django-images-dev.ap-south-1.elasticbeanstalk.com', 'https://api.studentmitra.in', 'http://127.0.0.1:8000', 'http://127.0.0.1','http://localhost:34317'
+]
 
 
 # Application definition
@@ -44,6 +47,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'storages',
     'rest_framework',
+    'corsheaders',
     'chat'
 ]
 
@@ -55,6 +59,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
