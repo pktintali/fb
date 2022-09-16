@@ -29,7 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in', '127.0.0.1:8000', '127.0.0.1']
 CORS_ALLOWED_ORIGINS = [
-    'https://iridescent-gumption-e0f2d8.netlify.app', 'http://localhost:34317'
+    'https://iridescent-gumption-e0f2d8.netlify.app', 'http://localhost:35191'
 ]
 
 

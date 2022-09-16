@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Message(models.Model):
-    msg = models.CharField(max_length=500)
+    msg = models.CharField(max_length=500,null=True,blank=True)
     img = models.ImageField(upload_to='chat_images/', null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     uid = models.IntegerField()
