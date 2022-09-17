@@ -29,7 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in', '127.0.0.1:8000', '127.0.0.1']
 CORS_ALLOWED_ORIGINS = [
-    'https://iridescent-gumption-e0f2d8.netlify.app', 'http://localhost:35191'
+    'https://iridescent-gumption-e0f2d8.netlify.app', 'http://localhost:34017'
 ]
 
 
@@ -188,9 +188,11 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
-}
-
-REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50
 }
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+#     'PAGE_SIZE': 50
+# }
