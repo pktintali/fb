@@ -5,7 +5,7 @@ from api.models import User
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        if not User.objects.filter(username='pktintali').exists():
-            User.objects.create_superuser('pktintali',
-                                          'pktintali@gmail.com',
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser('admin',
+                                          'admin@domain.com',
                                           '@@4444@@')
