@@ -23,7 +23,7 @@ urlpatterns = [
     path('', include('chat.urls')),
     path('images', include('images.urls')),
     path('api/v1/', include('api.urls')),
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
 ]
 
 if settings.DEBUG:
