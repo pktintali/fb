@@ -27,12 +27,13 @@ SECRET_KEY = 'django-insecure-m10c@k!u5b!y@=n%!9dxmc4#=q)q$)tdu$6$&w#1p_y107=2c_
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in', '127.0.0.1:8000', '127.0.0.1']
+    'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in', '127.0.0.1:8000', '127.0.0.1', 'tdevelopers-django.s3.ap-south-1.amazonaws.com']
+
 CORS_ALLOWED_ORIGINS = [
-    'https://greenapp.netlify.app', 'http://localhost:41733'
+    'https://greenapp.netlify.app', 'http://localhost:38963'
 ]
 
-
+# '127.0.0.1:8000', '127.0.0.1'
 # Application definition
 
 INSTALLED_APPS = [
