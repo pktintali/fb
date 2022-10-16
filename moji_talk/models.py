@@ -19,3 +19,12 @@ class GameRoom(models.Model):
     op1 = models.CharField(max_length=20, null=True, blank=True)
     op2 = models.CharField(max_length=20, null=True, blank=True)
     op3 = models.CharField(max_length=20, null=True, blank=True)
+
+class RoomMessage(models.Model):
+    room = models.ForeignKey(GameRoom,on_delete = models.CASCADE)
+    msg = models.CharField(max_length=500, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    uid = models.PositiveSmallIntegerField()
+    read = models.BooleanField(default=False)
+    class Meta:
+        ordering = ['-timestamp']

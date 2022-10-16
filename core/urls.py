@@ -22,7 +22,7 @@ from core import settings
 urlpatterns = [
     path('', include('chat.urls')),
     path('images', include('images.urls')),
-    path('game', include('moji_talk.urls')),
+    path('game/', include('moji_talk.urls')),
     path('api/v1/', include('api.urls')),
     path('admin/', admin.site.urls),
 ]
