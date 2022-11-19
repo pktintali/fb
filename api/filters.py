@@ -16,7 +16,8 @@ class FactFilter(django_filters.FilterSet):
         model = Fact
         fields = {
             'fact': ['contains'],
-            'category': ['exact']
+            'category': ['exact'],
+            'isAd': ['exact']
         }
 
 
@@ -52,4 +53,25 @@ class UserInterestFilter(django_filters.FilterSet):
         fields = {
             'category': ['exact'],
             'user': ['exact']
+        }
+
+
+class CategoryRequestFilter(django_filters.FilterSet):
+    class Meta:
+        model = CategoryRequest
+        fields = {
+            'user__premium': ['exact'],
+            'user': ['exact'],
+            'description': ['contains'],
+            'status': ['exact']
+        }
+
+
+class ReportFactFilter(django_filters.FilterSet):
+    class Meta:
+        model = ReportFact
+        fields = {
+            'fact': ['exact'],
+            'description': ['contains'],
+            'reason': ['contains']
         }

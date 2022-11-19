@@ -14,6 +14,9 @@ router.register('subscriptions', SubscriptionViewSet)
 router.register('user-tasks', UserTasksViewSet)
 router.register('fact-of-the-day', DailyFactViewSet)
 router.register('users-interest', UserInterestViewSet)
+router.register('category-requests', CategoryRequestViewSet)
+router.register('fact-reports', ReportFactViewSet)
+router.register('ads', AdViewSet, basename='ads')
 
 # router.register('customized-facts', CustomizedFactViewSet,
 #                 basename='customized-fact')

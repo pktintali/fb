@@ -3,6 +3,7 @@ import re
 import time
 import random
 from rest_framework import serializers
+from django.contrib.auth.hashers import make_password
 import requests
 from bs4 import BeautifulSoup
 from api.models import *
@@ -11,8 +12,24 @@ from api.models import *
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'premium', 'coins',
+        fields = ['id', 'username', 'email', 'premium', 'coins', 'avtar',
                   'shared_fact_counts', 'streak', 'last_seen', 'premium_start_date', 'premium_end_date']
+
+
+class UserAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'password', 'avtar', 'is_staff', 'is_superuser', 'email', 'premium', 'coins',
+                  'shared_fact_counts', 'streak', 'last_seen', 'premium_start_date', 'premium_end_date']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            password=make_password(validated_data['password']))
+        user.save()
+        return user
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -27,24 +44,35 @@ class SimpleCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
+class AdSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Fact
+        fields = "__all__"
+
+
 class FactSerializer(serializers.ModelSerializer):
     category = SimpleCategorySerializer()
 
     class Meta:
         model = Fact
-        fields = ['id', 'fact', 'timestamp',
-                  'imgURL', 'imgURL2', 'ref', 'desc', 'category']
+        fields = ['id', 'fact', 'timestamp', 'likes_count', 'bookmarks_count',
+                  'imgURL', 'imgURL2', 'ref', 'desc', 'category', 'isAd']
+    likes_count = serializers.IntegerField(read_only=True)
+    bookmarks_count = serializers.IntegerField(read_only=True)
 
 
 class FactAddSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Fact
-        fields = ['id', 'fact', 'timestamp', 'category']
+        fields = ['id', 'fact', 'timestamp', 'category', 'isAd']
 
     def create(self, validated_data):
         fact = self.validated_data.get('fact')
         category = self.validated_data.get('category')
+        isAd = self.validated_data.get('isAd')
+        if isAd:
+            return Fact.objects.create(**validated_data)
         imgURL, imgURL2, refLink, desc = getFactData(fact)
         if not imgURL:
             cat: Category = Category.objects.filter(name=category).get()
@@ -58,6 +86,8 @@ class BookMarkSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookMark
         fields = "__all__"
+    likes_count = serializers.IntegerField(read_only=True)
+    bookmarks_count = serializers.IntegerField(read_only=True)
 
 
 class BookMarkAddSerializer(serializers.ModelSerializer):
@@ -103,14 +133,27 @@ class DailyFactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DailyFact
-        fields = ['id','date', 'fact']
+        fields = ['id', 'date', 'fact']
 
 
 class DailyFactAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = DailyFact
         fields = "__all__"
-        
+
+
+class CategoryRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CategoryRequest
+        fields = "__all__"
+
+
+class ReportFactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReportFact
+        fields = "__all__"
+
+
 class UserInterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserInterest
