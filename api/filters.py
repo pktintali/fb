@@ -7,7 +7,7 @@ class CategoryFilter(django_filters.FilterSet):
         model = Category
         fields = {
             'name': ['contains'],
-            # 'description':['contains'],
+            'desc':['contains'],
             'isPremium': ['exact']
         }
 

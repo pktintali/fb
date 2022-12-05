@@ -18,7 +18,7 @@ class User(AbstractUser):
 
 class Category(models.Model):
     name = models.CharField(max_length=20)
-    description: models.CharField(max_length=50,blank=True,null=True)
+    desc= models.CharField(max_length=50, null=True)
     imgURL = models.URLField(null=True)
     isPremium = models.BooleanField(default=False)
 
