@@ -18,6 +18,7 @@ class User(AbstractUser):
 
 class Category(models.Model):
     name = models.CharField(max_length=20)
+    description: models.CharField(max_length=50,blank=True,null=True)
     imgURL = models.URLField(null=True)
     isPremium = models.BooleanField(default=False)
 
@@ -64,7 +65,7 @@ class Like(models.Model):
 
 class Reward(models.Model):
     title = models.CharField(max_length=50)
-    description = models.CharField(max_length=200,blank=True,null=True)
+    description = models.CharField(max_length=200, blank=True, null=True)
     duration = models.IntegerField()
     cost = models.IntegerField()
     imgURL = models.URLField()

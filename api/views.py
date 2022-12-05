@@ -26,7 +26,7 @@ class CategoryViewSet(ModelViewSet):
     ordering_fields = ['name']
     queryset = Category.objects.order_by('name').all()
     serializer_class = CategorySerializer
-    
+
 
 class AdViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -43,6 +43,17 @@ class FactViewSet(ModelViewSet):
     ordering_fields = ['timestamp', 'likes_count', 'bookmarks_count']
     queryset = Fact.objects.select_related('category').annotate(
         likes_count=Count('like'), bookmarks_count=Count('bookmark')).order_by('?').all()
+    def list(self, request, *args, **kwargs):
+        response = super(FactViewSet, self).list(request, args, kwargs)
+        if self.request.user.is_authenticated:
+            fact_list = response.data['results']
+            for f in fact_list:
+                liked  = Like.objects.filter(fact_id=f['id'], user=request.user).exists()
+                bookmarked  = BookMark.objects.filter(fact_id=f['id'], user=request.user).exists()
+                f[ 'isLiked' ] = liked
+                f['isBookmarked'] = bookmarked
+        return response
+    
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -72,6 +83,7 @@ class CustomizedFactViewSet(ModelViewSet):
         if self.request.method == 'GET':
             return FactSerializer
         return FactAddSerializer
+
 
 class BookMarkViewSet(ModelViewSet):
 
@@ -106,7 +118,8 @@ class LikeViewSet(ModelViewSet):
 class RewardViewSet(ModelViewSet):
     queryset = Reward.objects.order_by('id').all()
     serializer_class = RewardSerializer
-    
+
+
 class UserInterestViewSet(ModelViewSet):
     queryset = UserInterest.objects.order_by('id').all()
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -126,8 +139,8 @@ class UserTasksViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = UserTaskFilter
     ordering_fields = ['task_number']
-    
-    
+
+
 class CategoryRequestViewSet(ModelViewSet):
     queryset = CategoryRequest.objects.order_by('id').all()
     serializer_class = CategoryRequestSerializer
@@ -157,7 +170,7 @@ class DailyFactViewSet(ModelViewSet):
             print('Created')
             self.queryset = DailyFact.objects.order_by('id').all()
 
-        if(len(queryset) == 0):
+        if (len(queryset) == 0):
             print('Empty')
             create()
         else:
