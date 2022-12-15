@@ -30,7 +30,7 @@ ALLOWED_HOSTS = [
     'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in', '127.0.0.1:8000', '127.0.0.1', 'tdevelopers-django.s3.ap-south-1.amazonaws.com']
 
 CORS_ALLOWED_ORIGINS = [
-    'https://greenapp.netlify.app', 'http://localhost:40397', 'https://tdevelopers-django.s3.ap-south-1.amazonaws.com'
+    'https://greenapp.netlify.app','https://factfry.netlify.app', 'http://localhost:34105', 'https://tdevelopers-django.s3.ap-south-1.amazonaws.com'
 ]
 
 # '127.0.0.1:8000', '127.0.0.1'
