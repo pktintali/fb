@@ -55,10 +55,9 @@ class FactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Fact
-        fields = ['id', 'fact', 'timestamp', 'likes_count', 'bookmarks_count',
+        fields = ['id', 'fact', 'timestamp', 'likes_count',
                   'imgURL', 'imgURL2', 'ref', 'desc', 'category', 'isAd']
     likes_count = serializers.IntegerField(read_only=True)
-    bookmarks_count = serializers.IntegerField(read_only=True)
 
 
 class FactAddSerializer(serializers.ModelSerializer):
@@ -87,7 +86,6 @@ class BookMarkSerializer(serializers.ModelSerializer):
         model = BookMark
         fields = "__all__"
     likes_count = serializers.IntegerField(read_only=True)
-    bookmarks_count = serializers.IntegerField(read_only=True)
 
 
 class BookMarkAddSerializer(serializers.ModelSerializer):

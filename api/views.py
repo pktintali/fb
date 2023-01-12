@@ -40,20 +40,22 @@ class FactViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = FactFilter
     pagination_class = FactPagination
-    ordering_fields = ['timestamp', 'likes_count', 'bookmarks_count']
+    ordering_fields = ['timestamp', 'likes_count']
     queryset = Fact.objects.select_related('category').annotate(
-        likes_count=Count('like'), bookmarks_count=Count('bookmark')).order_by('?').all()
+        likes_count=Count('like')).order_by('?').all()
+
     def list(self, request, *args, **kwargs):
         response = super(FactViewSet, self).list(request, args, kwargs)
         if self.request.user.is_authenticated:
             fact_list = response.data['results']
             for f in fact_list:
-                liked  = Like.objects.filter(fact_id=f['id'], user=request.user).exists()
-                bookmarked  = BookMark.objects.filter(fact_id=f['id'], user=request.user).exists()
-                f[ 'isLiked' ] = liked
+                liked = Like.objects.filter(
+                    fact_id=f['id'], user=request.user).exists()
+                bookmarked = BookMark.objects.filter(
+                    fact_id=f['id'], user=request.user).exists()
+                f['isLiked'] = liked
                 f['isBookmarked'] = bookmarked
         return response
-    
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -65,19 +67,31 @@ class CustomizedFactViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = FactFilter
     pagination_class = FactPagination
-    ordering_fields = ['timestamp', 'likes_count', 'bookmarks_count']
+    ordering_fields = ['timestamp', 'likes_count']
 
     def get_queryset(self):
         user = self.kwargs['user']
         use_interests = UserInterest.objects.filter(user__pk=user)
         interests = []
         for i in use_interests:
-            interests.append(i.category)
+            interests.append(i.category.pk)
         queryset = Fact.objects.select_related('category').annotate(
-            likes_count=Count('like'), bookmarks_count=Count('bookmark')).order_by('?').filter(
-            category__in=interests).all()
-        print(user)
+            likes_count=Count('like')).order_by('?').filter(
+            category_id__in=interests).all()
         return queryset
+    
+    def list(self, request, *args, **kwargs):
+        response = super(CustomizedFactViewSet, self).list(request, args, kwargs)
+        if self.request.user.is_authenticated:
+            fact_list = response.data['results']
+            for f in fact_list:
+                liked = Like.objects.filter(
+                    fact_id=f['id'], user=request.user).exists()
+                bookmarked = BookMark.objects.filter(
+                    fact_id=f['id'], user=request.user).exists()
+                f['isLiked'] = liked
+                f['isBookmarked'] = bookmarked
+        return response
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
