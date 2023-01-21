@@ -9,5 +9,3 @@ class Command(BaseCommand):
             User.objects.create_superuser('admin',
                                           'admin@domain.com',
                                           '@@4444@@')
-        else:
-            print('Already exist')
