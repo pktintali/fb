@@ -5,6 +5,6 @@ class FactPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 class BookmarkAndLikePagination(PageNumberPagination):
-    page_size = 10000
+    page_size = 100
     page_size_query_param = 'page_size'
-    max_page_size = 100000
+    max_page_size = 100

@@ -20,7 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-m10c@k!u5b!y@=n%!9dxmc4#=q)q$)tdu$6$&w#1p_y107=2c_'
+# SECRET_KEY = 'django-insecure-m10c@k!u5b!y@=n%!9dxmc4#=q)q$)tdu$6$&w#1p_y107=2c_'
+SECRET_KEY = os.environ(['SECRET_KEY'])
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -29,7 +30,7 @@ ALLOWED_HOSTS = [
     'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in', '127.0.0.1:8000', '127.0.0.1', 'tdevelopers-django.s3.ap-south-1.amazonaws.com']
 
 CORS_ALLOWED_ORIGINS = [
-    'https://greenapp.netlify.app','https://factfry.netlify.app','https://app.factjano.com', 'http://localhost:45879', 'https://tdevelopers-django.s3.ap-south-1.amazonaws.com'
+    'https://greenapp.netlify.app', 'https://factfry.netlify.app', 'https://app.factjano.com', 'http://localhost:45879', 'https://tdevelopers-django.s3.ap-south-1.amazonaws.com'
 ]
 
 # '127.0.0.1:8000', '127.0.0.1'
@@ -42,16 +43,29 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # new
+    'django.contrib.sites',
     'images.apps.ImagesConfig',
     'django_tables2',
     'storages',
+    'crispy_forms',
     'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'dj_rest_auth.registration',
     'django_filters',
     'corsheaders',
+    'widget_tweaks',
     'chat',
     'api',
     'moji_talk',
+    'accounts'
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -70,7 +84,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS':  [os.path.join(BASE_DIR, 'accounts/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -186,17 +200,27 @@ MEDIA_ROOT = BASE_DIR / 'mediafiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "api.user"
+AUTHENTICATION_BACKENDS = ["api.models.AuthBackend"]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     # 'PAGE_SIZE': 50
 }
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-#     'PAGE_SIZE': 50
-# }
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.environ(['EMAIL_HOST_USER'])
+EMAIL_HOST_PASSWORD = os.environ(['EMAIL_HOST_PASSWORD'])
+
+#All Auth Related UIs
+# PASSWORD_RESET_CONFIRM_URL = '/accounts/auth/password/reset/key/{uidb64}/{token}/'
+
+ACCOUNT_EMAIL_CONFIRMATION_URL = '/accounts/auth/email/confirmation/'
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/accounts/auth/email/confirmation/done'
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/accounts/auth/email/confirmation/done'

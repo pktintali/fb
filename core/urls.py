@@ -25,7 +25,9 @@ urlpatterns = [
     path('game/', include('moji_talk.urls')),
     path('api/v1/', include('api.urls')),
     path('admin/', admin.site.urls),
+    path('accounts/', include('accounts.urls')),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# a5db9606f412b2b932a305a893dc4166557756a3

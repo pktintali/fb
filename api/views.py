@@ -1,4 +1,8 @@
 from datetime import datetime
+from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
+
+from rest_framework import permissions
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
@@ -7,12 +11,14 @@ from api.models import *
 from api.serializers import *
 from api.filters import *
 from api.paginations import *
+from accounts.permissions import IsAdminOrReadOnly,IsAuthenticatedOrNoAccessEditAdminOnly
 # Create your views here.
 
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.order_by('id').all()
     # serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -24,6 +30,7 @@ class CategoryViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = CategoryFilter
     ordering_fields = ['name']
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Category.objects.order_by('name').all()
     serializer_class = CategorySerializer
 
@@ -32,6 +39,7 @@ class AdViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = FactFilter
     ordering_fields = ['name']
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Fact.objects.filter(isAd=True).all()
     serializer_class = AdSerializer
 
@@ -41,6 +49,7 @@ class FactViewSet(ModelViewSet):
     filterset_class = FactFilter
     pagination_class = FactPagination
     ordering_fields = ['timestamp', 'likes_count']
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Fact.objects.select_related('category').annotate(
         likes_count=Count('like')).order_by('?').all()
 
@@ -68,20 +77,23 @@ class CustomizedFactViewSet(ModelViewSet):
     filterset_class = FactFilter
     pagination_class = FactPagination
     ordering_fields = ['timestamp', 'likes_count']
-
+    permission_classes = [IsAdminOrReadOnly]
     def get_queryset(self):
-        user = self.kwargs['user']
-        use_interests = UserInterest.objects.filter(user__pk=user)
-        interests = []
-        for i in use_interests:
-            interests.append(i.category.pk)
-        queryset = Fact.objects.select_related('category').annotate(
-            likes_count=Count('like')).order_by('?').filter(
-            category_id__in=interests).all()
-        return queryset
-    
+        user = self.request.user
+        if self.request.user.is_authenticated:
+            use_interests = UserInterest.objects.filter(user=user)
+            interests = []
+            for i in use_interests:
+                interests.append(i.category)
+            queryset = Fact.objects.select_related('category').annotate(
+                likes_count=Count('like')).order_by('?').filter(
+                category__in=interests).all()
+            return queryset
+        return Fact.objects.none()
+
     def list(self, request, *args, **kwargs):
-        response = super(CustomizedFactViewSet, self).list(request, args, kwargs)
+        response = super(CustomizedFactViewSet, self).list(
+            request, args, kwargs)
         if self.request.user.is_authenticated:
             fact_list = response.data['results']
             for f in fact_list:
@@ -100,14 +112,41 @@ class CustomizedFactViewSet(ModelViewSet):
 
 
 class BookMarkViewSet(ModelViewSet):
-
     queryset = BookMark.objects.select_related('fact').annotate(
-        likes_count=Count('fact__like')).order_by('id').all()
+        likes_count=Count('fact__like')).order_by('-timestamp').all()
+    # serializer_class = BookMarkSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = BookMarkFilter
+    ordering_fields = ['timestamp']
+    permission_classes = [permissions.IsAdminUser]
+    pagination_class = BookmarkAndLikePagination
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return BookMarkSerializer
+        return BookMarkAddSerializer
+
+
+class MyBookMarkViewSet(ModelViewSet):
+    # queryset = BookMark.objects.select_related('fact').annotate(
+    #     likes_count=Count('fact__like')).order_by('id').all()
     # serializer_class = BookMarkSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = BookMarkFilter
     ordering_fields = ['timestamp']
     pagination_class = BookmarkAndLikePagination
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = BookMark.objects.filter(user=user).select_related('fact').annotate(
+            likes_count=Count('fact__like')).order_by('-timestamp').all()
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -116,12 +155,41 @@ class BookMarkViewSet(ModelViewSet):
 
 
 class LikeViewSet(ModelViewSet):
-    queryset = Like.objects.order_by('id').all()
+    queryset = Like.objects.select_related('fact').annotate(
+        likes_count=Count('fact__like')).order_by('-timestamp').all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = LikeFilter
+    ordering_fields = ['timestamp']
+    pagination_class = BookmarkAndLikePagination
+    permission_classes = [permissions.IsAdminUser]
+    # serializer_class = LikeSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return LikeSerializer
+        return LikeAddSerializer
+
+
+class MyLikeViewSet(ModelViewSet):
+    # queryset = Like.objects.select_related('fact').annotate(
+    #     likes_count=Count('fact__like')).order_by('id').all()
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = LikeFilter
     ordering_fields = ['timestamp']
     pagination_class = BookmarkAndLikePagination
     # serializer_class = LikeSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Like.objects.filter(user=user).select_related('fact').annotate(
+            likes_count=Count('fact__like')).order_by('-timestamp').all()
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -132,6 +200,7 @@ class LikeViewSet(ModelViewSet):
 class RewardViewSet(ModelViewSet):
     queryset = Reward.objects.order_by('id').all()
     serializer_class = RewardSerializer
+    permission_classes = [IsAuthenticatedOrNoAccessEditAdminOnly]
 
 
 class UserInterestViewSet(ModelViewSet):
@@ -139,11 +208,27 @@ class UserInterestViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = UserInterestFilter
     ordering_fields = ['timestamp']
+    permission_classes = [permissions.IsAdminUser]
     serializer_class = UserInterestSerializer
+class MyInterestViewSet(ModelViewSet):
+    # queryset = UserInterest.objects.order_by('id').all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = UserInterestFilter
+    ordering_fields = ['timestamp']
+    serializer_class = UserInterestSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = UserInterest.objects.filter(user=user).order_by('id').all()
+        return queryset
 
 
 class SubscriptionViewSet(ModelViewSet):
     queryset = Subscription.objects.order_by('id').all()
+    permission_classes = [IsAuthenticatedOrNoAccessEditAdminOnly]
     serializer_class = SubscriptionSerializer
 
 
@@ -153,6 +238,23 @@ class UserTasksViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = UserTaskFilter
     ordering_fields = ['task_number']
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+class MyTasksViewSet(ModelViewSet):
+    # queryset = UserTasks.objects.order_by('id').all()
+    serializer_class = UserTasksSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = UserTaskFilter
+    ordering_fields = ['task_number']
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        
+    def get_queryset(self):
+        user = self.request.user
+        queryset = UserTasks.objects.filter(user=user).order_by('id').all()
+        return queryset
 
 
 class CategoryRequestViewSet(ModelViewSet):
@@ -161,6 +263,14 @@ class CategoryRequestViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = CategoryRequestFilter
     ordering_fields = ['timestamp']
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return CategoryRequestSerializer
+        return CategoryRequestAddSerializer
 
 
 class ReportFactViewSet(ModelViewSet):
@@ -174,6 +284,7 @@ class ReportFactViewSet(ModelViewSet):
 class DailyFactViewSet(ModelViewSet):
     print('Checking Daily Fact...')
     queryset = DailyFact.objects.order_by('id').all()
+    permission_classes = [IsAdminOrReadOnly]
 
     def updateDailyFact(self):
         queryset = DailyFact.objects.order_by('id').all()

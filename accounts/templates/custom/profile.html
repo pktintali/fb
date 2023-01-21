@@ -1,0 +1,17 @@
+{% extends "custom/base.html" %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<h2>{{ user.username }}'s Profile</h2>
+<p>Email: {{ user.email }}</p>
+{% if user.is_verified %}
+    <p>Your email is verified.</p>
+{% else %}
+    <p>Your email is not verified. <a href="{% url 'email' %}">Click here to verify.</a></p>
+{% endif %}
+<a href="{% url 'account_logout' %}">Sign Out</a>
+{% else %}
+    <p>Please login to view your account.</p>
+<a class="primary_btn" href="{% url 'email' %}">Login</a>
+{% endif %}
+{% endblock %}

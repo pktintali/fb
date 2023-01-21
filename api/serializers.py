@@ -91,7 +91,7 @@ class BookMarkSerializer(serializers.ModelSerializer):
 class BookMarkAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookMark
-        fields = "__all__"
+        fields = ['fact']
 
 
 class LikeSerializer(serializers.ModelSerializer):
@@ -100,12 +100,13 @@ class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = "__all__"
+    likes_count = serializers.IntegerField(read_only=True)
 
 
 class LikeAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = "__all__"
+        fields = ['fact']
 
 
 class RewardSerializer(serializers.ModelSerializer):
@@ -123,7 +124,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 class UserTasksSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserTasks
-        fields = "__all__"
+        fields = ['task_number']
 
 
 class DailyFactSerializer(serializers.ModelSerializer):
@@ -144,6 +145,10 @@ class CategoryRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoryRequest
         fields = "__all__"
+class CategoryRequestAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CategoryRequest
+        fields = ['description','status']
 
 
 class ReportFactSerializer(serializers.ModelSerializer):
@@ -155,7 +160,7 @@ class ReportFactSerializer(serializers.ModelSerializer):
 class UserInterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserInterest
-        fields = "__all__"
+        fields = ['id','category','timestamp']
 
 
 def getFactData(fact: str):

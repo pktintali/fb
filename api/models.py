@@ -2,7 +2,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     profile_pic = models.ImageField(upload_to="profile_pics/", blank=True)
@@ -14,6 +13,27 @@ class User(AbstractUser):
     premium_start_date = models.DateField(null=True)
     premium_end_date = models.DateField(null=True)
     avtar = models.IntegerField(default=0, blank=True, null=True)
+    
+from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import ModelBackend
+class AuthBackend(ModelBackend):
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        UserModel = get_user_model()
+        try:
+            user = UserModel.objects.get(username=username)
+        except UserModel.DoesNotExist:
+            try:
+                user = UserModel.objects.get(email=username)
+            except UserModel.DoesNotExist:
+                # Run the default password hasher once to reduce the timing
+                # difference between an existing and a nonexistent user (#20760).
+                UserModel().set_password(password)
+            else:
+                if user.check_password(password) and self.user_can_authenticate(user):
+                    return user
+        else:
+            if user.check_password(password) and self.user_can_authenticate(user):
+                return user
 
 
 class Category(models.Model):
