@@ -14,6 +14,9 @@ class User(AbstractUser):
     premium_end_date = models.DateField(null=True)
     avtar = models.IntegerField(default=0, blank=True, null=True)
     
+    # class Meta:
+    #     db_table = 'auth_user'
+    
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 class AuthBackend(ModelBackend):
