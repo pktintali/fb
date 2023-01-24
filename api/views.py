@@ -1,17 +1,15 @@
 from datetime import datetime
-from django.contrib.auth import authenticate, login
-from django.http import JsonResponse
 
 from rest_framework import permissions
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import OrderingFilter,SearchFilter
 from django.db.models.aggregates import Count
 from api.models import *
 from api.serializers import *
 from api.filters import *
 from api.paginations import *
-from accounts.permissions import IsAdminOrReadOnly,IsAuthenticatedOrNoAccessEditAdminOnly
+from accounts.permissions import IsAdminOrReadOnly,IsAdminOrNoAccess, IsAuthenticatedOrNoAccessEditAdminOnly
 # Create your views here.
 
 
@@ -262,10 +260,23 @@ class CategoryRequestViewSet(ModelViewSet):
     serializer_class = CategoryRequestSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = CategoryRequestFilter
+    permission_classes = [IsAdminOrNoAccess]
+    ordering_fields = ['timestamp']
+
+class MyCategoryRequestViewSet(ModelViewSet):
+    # queryset = CategoryRequest.objects.order_by('id').all()
+    # serializer_class = CategoryRequestSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = CategoryRequestFilter
     ordering_fields = ['timestamp']
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+        
+    def get_queryset(self):
+        user = self.request.user
+        queryset = CategoryRequest.objects.filter(user=user).order_by('id').all()
+        return queryset
         
     def get_serializer_class(self):
         if self.request.method == 'GET':

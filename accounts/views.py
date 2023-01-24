@@ -2,7 +2,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 
 # Create your views here.
-from dj_rest_auth.views import UserDetailsView,PasswordResetView as prvdj,PasswordResetConfirmView
+from dj_rest_auth.views import UserDetailsView,PasswordResetView as prvdj
 from allauth.account.views import LoginView,PasswordResetView as APasswordResetView,PasswordResetFromKeyView,PasswordResetFromKeyDoneView,PasswordResetDoneView,ConfirmEmailView,LogoutView, EmailView,ConfirmEmailView,SignupView
 from .serializers import CustomUserSerializer
 

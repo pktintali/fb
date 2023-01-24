@@ -47,13 +47,22 @@
 
   {% if can_add_email %}
     <h2>{% trans "Add E-mail Address" %}</h2>
-
     <form method="post" action="{% url 'account_email' %}" class="add_email">
         {% csrf_token %}
-        <div class="form-group">
-          {% comment %} <label for="{{ form.email.name }}">Email:</label> {% endcomment %}
-          {% render_field form.email class+="input-field" placeholder="E-mail address" %}
-      </div>
+        {% for field in form %}
+          <div class="form-group">
+            <label class='signup-label' for="{{ field.name }}">{{ field.label }}</label>
+            <br/>
+            {% render_field field class+="input-field mt-5" placeholder=field.label %}
+                {% if field.errors %}
+                    <div class="text-danger">
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+          </div>
+        {% endfor %}
         <button class="primary_btn" name="action_add" type="submit">{% trans "Add E-mail" %}</button>
     </form>
   {% endif %}
