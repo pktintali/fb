@@ -1,5 +1,5 @@
 from rest_framework import routers
-
+from django.urls import path
 from .views import *
 
 router = routers.DefaultRouter()
@@ -25,4 +25,12 @@ router.register('my-category-requests', MyCategoryRequestViewSet,
 router.register('fact-reports', ReportFactViewSet)
 router.register('ads', AdViewSet, basename='ads')
 
-urlpatterns = []+router.urls
+urlpatterns = [
+    path('facts/<int:pk>/like/', FactLikeViewSet.as_view({'post': 'create'})),
+    path('facts/<int:pk>/unlike/',
+         FactLikeViewSet.as_view({'delete': 'destroy'})),
+    path('facts/<int:pk>/bookmark/',
+         FactBookmarkViewSet.as_view({'post': 'create'})),
+    path('facts/<int:pk>/delbookmark/',
+         FactBookmarkViewSet.as_view({'delete': 'destroy'})),
+]+router.urls

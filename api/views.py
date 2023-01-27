@@ -1,7 +1,9 @@
 from datetime import datetime
 
-from rest_framework import permissions
+from rest_framework import permissions,status,viewsets
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter,SearchFilter
 from django.db.models.aggregates import Count
@@ -68,7 +70,35 @@ class FactViewSet(ModelViewSet):
         if self.request.method == 'GET':
             return FactSerializer
         return FactAddSerializer
+    
+class FactLikeViewSet(viewsets.ViewSet):
+    def create(self, request, pk=None):
+        fact = get_object_or_404(Fact, pk=pk)
+        like = Like.objects.create(user=request.user, fact=fact)
+        return Response(status=status.HTTP_201_CREATED)
 
+    def destroy(self, request, pk=None):
+        fact = get_object_or_404(Fact, pk=pk)
+        like = Like.objects.filter(user=request.user, fact=fact).first()
+        if like:
+            like.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(data={"Not Fond"},status=status.HTTP_404_NOT_FOUND)
+
+class FactBookmarkViewSet(viewsets.ViewSet):
+    def create(self, request, pk=None):
+        fact = get_object_or_404(Fact, pk=pk)
+        bookmark = BookMark.objects.create(user=request.user, fact=fact)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, pk=None):
+        fact = get_object_or_404(Fact, pk=pk)
+        bookmark = BookMark.objects.filter(user=request.user, fact=fact).first()
+        if bookmark:
+            bookmark.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(data={"Not Fond"},status=status.HTTP_404_NOT_FOUND)
+    
 
 class CustomizedFactViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -145,6 +175,20 @@ class MyBookMarkViewSet(ModelViewSet):
         queryset = BookMark.objects.filter(user=user).select_related('fact').annotate(
             likes_count=Count('fact__like')).order_by('-timestamp').all()
         return queryset
+    
+    def list(self, request, *args, **kwargs):
+        response = super(MyBookMarkViewSet, self).list(
+            request, args, kwargs)
+        if self.request.user.is_authenticated:
+            bookmark_list = response.data['results']
+            for l in bookmark_list:
+                liked = BookMark.objects.filter(
+                    fact_id=l['fact']['id'], user=request.user).exists()
+                bookmarked = BookMark.objects.filter(
+                    fact_id=l['fact']['id'], user=request.user).exists()
+                l['fact']['isLiked'] = liked
+                l['fact']['isBookmarked'] = bookmarked
+        return response
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -154,7 +198,7 @@ class MyBookMarkViewSet(ModelViewSet):
 
 class LikeViewSet(ModelViewSet):
     queryset = Like.objects.select_related('fact').annotate(
-        likes_count=Count('fact__like')).order_by('-timestamp').all()
+    likes_count=Count('fact__like')).order_by('-timestamp').all()
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = LikeFilter
     ordering_fields = ['timestamp']
@@ -188,6 +232,20 @@ class MyLikeViewSet(ModelViewSet):
         queryset = Like.objects.filter(user=user).select_related('fact').annotate(
             likes_count=Count('fact__like')).order_by('-timestamp').all()
         return queryset
+    
+    def list(self, request, *args, **kwargs):
+        response = super(MyLikeViewSet, self).list(
+            request, args, kwargs)
+        if self.request.user.is_authenticated:
+            like_list = response.data['results']
+            for l in like_list:
+                liked = Like.objects.filter(
+                    fact_id=l['fact']['id'], user=request.user).exists()
+                bookmarked = BookMark.objects.filter(
+                    fact_id=l['fact']['id'], user=request.user).exists()
+                l['fact']['isLiked'] = liked
+                l['fact']['isBookmarked'] = bookmarked
+        return response
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
