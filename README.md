@@ -1,6 +1,6 @@
 # django-images
 
-A simple image hosting application written in Django.
+A simple image hosting application written in Django and reest framework.
 
 ## Want to use this project?
 
