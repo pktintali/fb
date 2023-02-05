@@ -1,28 +1,30 @@
 from api.models import *
 import django_filters
+from django_filters import FilterSet
 
-
-class CategoryFilter(django_filters.FilterSet):
+class CategoryFilter(FilterSet):
     class Meta:
         model = Category
         fields = {
             'name': ['contains'],
             'desc':['contains'],
+            'language':['exact'],
             'isPremium': ['exact']
         }
 
 
-class FactFilter(django_filters.FilterSet):
+class FactFilter(FilterSet):
     class Meta:
         model = Fact
         fields = {
             'fact': ['contains'],
             'category': ['exact'],
-            'isAd': ['exact']
+            'isAd': ['exact'],
+            'category__language': ['exact'],
         }
 
 
-class BookMarkFilter(django_filters.FilterSet):
+class BookMarkFilter(FilterSet):
     class Meta:
         model = BookMark
         fields = {
@@ -31,7 +33,7 @@ class BookMarkFilter(django_filters.FilterSet):
         }
 
 
-class LikeFilter(django_filters.FilterSet):
+class LikeFilter(FilterSet):
     class Meta:
         model = Like
         fields = {
@@ -40,7 +42,7 @@ class LikeFilter(django_filters.FilterSet):
         }
 
 
-class UserTaskFilter(django_filters.FilterSet):
+class UserTaskFilter(FilterSet):
     class Meta:
         model = UserTasks
         fields = {
@@ -48,7 +50,7 @@ class UserTaskFilter(django_filters.FilterSet):
         }
 
 
-class UserInterestFilter(django_filters.FilterSet):
+class UserInterestFilter(FilterSet):
     class Meta:
         model = UserInterest
         fields = {
@@ -57,7 +59,7 @@ class UserInterestFilter(django_filters.FilterSet):
         }
 
 
-class CategoryRequestFilter(django_filters.FilterSet):
+class CategoryRequestFilter(FilterSet):
     class Meta:
         model = CategoryRequest
         fields = {
@@ -68,7 +70,7 @@ class CategoryRequestFilter(django_filters.FilterSet):
         }
 
 
-class ReportFactFilter(django_filters.FilterSet):
+class ReportFactFilter(FilterSet):
     class Meta:
         model = ReportFact
         fields = {

@@ -14,11 +14,11 @@ class User(AbstractUser):
     premium_end_date = models.DateField(null=True)
     avtar = models.IntegerField(default=0, blank=True, null=True)
     
-    # class Meta:
-    #     db_table = 'auth_user'
     
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+
+# Using Custom AuthModel to Allow user login with either username or password
 class AuthBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         UserModel = get_user_model()
@@ -41,6 +41,7 @@ class AuthBackend(ModelBackend):
 
 class Category(models.Model):
     name = models.CharField(max_length=20)
+    language = models.CharField(max_length=20,default='english')
     desc= models.CharField(max_length=50, null=True)
     imgURL = models.URLField(null=True)
     isPremium = models.BooleanField(default=False)

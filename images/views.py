@@ -1,11 +1,15 @@
 import logging
+from rest_framework.viewsets import ModelViewSet
 
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 
 from images.forms import UploadForm
-from images.models import Image
+from images.models import Image,BGImage
 from images.tables import ImageTable
+from images.serializer import ImageSerializer,BGImageSerializer
+
+from accounts.permissions import FullAccessWithoutAuthentication
 
 
 logger = logging.getLogger(__name__)
@@ -35,3 +39,14 @@ def upload_view(request):
         logger.warning(request.FILES)
 
     return redirect('images-index')
+
+
+class ImageViewSet(ModelViewSet):
+    serializer_class = ImageSerializer
+    permission_classes = [FullAccessWithoutAuthentication]
+    queryset = Image.objects.all()
+
+class BGImageViewSet(ModelViewSet):
+    serializer_class = BGImageSerializer
+    permission_classes = [FullAccessWithoutAuthentication]
+    queryset = BGImage.objects.all()

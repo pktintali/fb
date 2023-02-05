@@ -11,3 +11,7 @@ class Image(models.Model):
 
     def __str__(self):
         return f"{self.title}"
+    
+class BGImage(models.Model):
+    url = models.CharField(max_length=256)
+    timestamp = models.DateTimeField(auto_now_add=True)
