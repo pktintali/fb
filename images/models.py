@@ -13,5 +13,6 @@ class Image(models.Model):
         return f"{self.title}"
     
 class BGImage(models.Model):
-    url = models.CharField(max_length=500)
+    imgID = models.IntegerField(default=0)
+    status = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
