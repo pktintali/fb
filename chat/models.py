@@ -27,5 +27,6 @@ class PublicMessage(models.Model):
 
 class Activity(models.Model):
     last_seen = models.DateTimeField(auto_now=True)
+    last_open = models.DateTimeField(auto_now=True)
     device_info = models.TextField()
     uid = models.PositiveSmallIntegerField()

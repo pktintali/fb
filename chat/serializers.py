@@ -58,6 +58,10 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     last_seen = serializers.SerializerMethodField(
         method_name='human_date')
+    last_open = serializers.SerializerMethodField(
+        method_name='human_date')
 
     def human_date(self, msg: Activity):
         return humanize.naturaltime(msg.last_seen)
+    def human_date_open(self, msg: Activity):
+        return humanize.naturaltime(msg.last_open)
