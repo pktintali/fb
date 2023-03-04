@@ -357,10 +357,11 @@ class DailyFactViewSet(ModelViewSet):
 
     def updateDailyFact(self):
         queryset = DailyFact.objects.order_by('id').all()
-
         def create():
-            newFact: DailyFact = Fact.objects.order_by('?').first()
-            DailyFact.objects.create(fact=newFact)
+            newFactEnglish: DailyFact = Fact.objects.filter(category__language='english').order_by('?').first()
+            newFactHindi: DailyFact = Fact.objects.filter(category__language='hindi').order_by('?').first()
+            DailyFact.objects.create(fact=newFactEnglish)
+            DailyFact.objects.create(fact=newFactHindi)
             print('Created')
             self.queryset = DailyFact.objects.order_by('id').all()
 
