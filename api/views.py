@@ -127,26 +127,18 @@ class CustomizedFactViewSet(ModelViewSet):
             if len(interests) > 15:
                 other_facts = Fact.objects.filter(category__language=user_lang).exclude(
                     category__in=interests
-                ).order_by('?').all()
-                if len(other_facts) > 10:
-                    other_facts = other_facts[:10]
-                queryset = queryset | other_facts
+                ).order_by('?').all()[:10]
 
             if len(interests) <= 15 and len(interests) > 3:
                 other_facts = Fact.objects.filter(category__language=user_lang).exclude(
                     category__in=interests
-                ).order_by('?').all()
-                if len(other_facts) > 15:
-                    other_facts = other_facts[:15]
-                queryset = queryset | other_facts
+                ).order_by('?').all()[:15]
 
             if len(interests) <= 3:
                 other_facts = Fact.objects.filter(category__language=user_lang).exclude(
                     category__in=interests
-                ).order_by('?').all()
-                if len(other_facts) > 25:
-                    other_facts = other_facts[:25]
-                queryset = queryset | other_facts
+                ).order_by('?').all()[:25]
+            queryset = queryset | other_facts
             return queryset
         return Fact.objects.none()
 
