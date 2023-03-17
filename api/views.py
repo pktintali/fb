@@ -117,6 +117,7 @@ class CustomizedFactViewSet(ModelViewSet):
             interests = []
             for i in use_interests:
                 interests.append(i.category)
+                print(i.category)
             queryset = Fact.objects.select_related('category').annotate(
                 likes_count=Count('like')).order_by('?').filter(
                 category__in=interests).all()
@@ -127,17 +128,17 @@ class CustomizedFactViewSet(ModelViewSet):
             if len(interests) > 15:
                 other_facts = Fact.objects.filter(category__language=user_lang).exclude(
                     category__in=interests
-                ).order_by('?').all()[:20]
+                ).exclude(category__name='Ad').order_by('?').all()[:20]
 
             if len(interests) <= 15 and len(interests) > 3:
                 other_facts = Fact.objects.filter(category__language=user_lang).exclude(
                     category__in=interests
-                ).order_by('?').all()[:25]
+                ).exclude(category__name='Ad').order_by('?').all()[:25]
 
             if len(interests) <= 3:
                 other_facts = Fact.objects.filter(category__language=user_lang).exclude(
                     category__in=interests
-                ).order_by('?').all()[:35]
+                ).exclude(category__name='Ad').order_by('?').all()[:35]
             queryset = queryset | other_facts
             return queryset
         return Fact.objects.none()
