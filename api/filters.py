@@ -1,6 +1,7 @@
 from api.models import *
 import django_filters
-from django_filters import FilterSet
+from django_filters import FilterSet,CharFilter
+import re
 
 class CategoryFilter(FilterSet):
     class Meta:
@@ -14,14 +15,22 @@ class CategoryFilter(FilterSet):
 
 
 class FactFilter(FilterSet):
+    search = CharFilter(method='search_filter')
     class Meta:
         model = Fact
         fields = {
-            'fact': ['contains'],
+            'fact': ['icontains'],
             'category': ['exact'],
             'isAd': ['exact'],
             'category__language': ['exact'],
         }
+        
+    def search_filter(self, queryset, name, value):
+        # Escape any special characters in the search phrase
+        pattern = re.escape(value.lower())
+        # create a regular expression that matches the entire search phrase as a whole word
+        pattern = r'\b{0}\b'.format(pattern)
+        return queryset.filter(fact__iregex=pattern)
 
 
 class BookMarkFilter(FilterSet):

@@ -117,7 +117,7 @@ class CustomizedFactViewSet(ModelViewSet):
             interests = []
             for i in use_interests:
                 interests.append(i.category)
-                print(i.category)
+                # print(i.category)
             queryset = Fact.objects.select_related('category').annotate(
                 likes_count=Count('like')).order_by('?').filter(
                 category__in=interests).all()
