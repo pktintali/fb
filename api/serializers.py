@@ -60,6 +60,13 @@ class FactSerializer(serializers.ModelSerializer):
     likes_count = serializers.IntegerField(read_only=True)
 
 
+class FactPatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Fact
+        fields = ['fact',
+                  'imgURL', 'imgURL2', 'ref', 'desc', 'category', 'isAd']
+
+
 class FactAddSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -145,10 +152,12 @@ class CategoryRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoryRequest
         fields = "__all__"
+
+
 class CategoryRequestAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoryRequest
-        fields = ['description','status']
+        fields = ['description', 'status']
 
 
 class ReportFactSerializer(serializers.ModelSerializer):
@@ -160,7 +169,7 @@ class ReportFactSerializer(serializers.ModelSerializer):
 class UserInterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserInterest
-        fields = ['id','category','timestamp']
+        fields = ['id', 'category', 'timestamp']
 
 
 def getFactData(fact: str):

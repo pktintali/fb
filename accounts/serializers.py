@@ -30,6 +30,8 @@ class CustomUserSerializer(UserDetailsSerializer):
             extra_fields.append('premium_end_date')
         if hasattr(UserModel, 'shared_fact_counts'):
             extra_fields.append('shared_fact_counts')
+        if hasattr(UserModel, 'is_staff'):
+            extra_fields.append('is_staff')
         model = UserModel
         fields = ('pk', *extra_fields)
         read_only_fields = ('email',)

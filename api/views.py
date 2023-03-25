@@ -69,6 +69,8 @@ class FactViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return FactSerializer
+        elif self.request.method == 'PATCH':
+            return FactPatchSerializer
         return FactAddSerializer
 
 
