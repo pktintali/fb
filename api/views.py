@@ -6,6 +6,7 @@ from rest_framework.viewsets import ModelViewSet
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.decorators import action
 from django.db.models.aggregates import Count
 from api.models import *
 from api.serializers import *
@@ -72,7 +73,70 @@ class FactViewSet(ModelViewSet):
         elif self.request.method == 'PATCH':
             return FactPatchSerializer
         return FactAddSerializer
+    
+    @action(detail=False, methods=['post'], url_path='remove-duplicate')
+    def remove_duplicate_facts(self, request):
+        # Step 1: Group Fact instances by their fact field and filter for duplicates
+        duplicate_facts = (
+            Fact.objects
+            .values('fact')
+            .annotate(fact_count=Count('fact'))
+            .filter(fact_count__gt=1)
+            .values_list('fact', flat=True)
+        )
+        print(duplicate_facts)
+        # Step 2-4: For each duplicate Fact instance, delete all but the first instance
+        count = 0
+        for fact in duplicate_facts:
+            duplicates = Fact.objects.filter(fact=fact).exclude(id=Fact.objects.filter(fact=fact).order_by('id').first().id)
+            print(duplicates)
+            count += duplicates.count()
+            duplicates.delete()
 
+        return Response({'message': f'{count} duplicate facts removed'}, status=status.HTTP_200_OK)
+    
+    
+    @action(detail=False, methods=['post'], url_path='remove-similar')
+    def remove_similar_facts(self, request):
+        threshold = request.query_params.get('threshold', '80')
+        try:
+            threshold = int(threshold)
+            if threshold < 60:
+                return Response({'message': 'Threshold must be greater than or equal to 60'}, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return Response({'message': 'Invalid threshold value'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Step 1: Group Fact instances by their fact field and filter for duplicates
+        duplicate_facts = (
+            Fact.objects
+            .values('fact')
+            .annotate(fact_count=Count('fact'))
+            .filter(fact_count__gt=1)
+            .values_list('fact', flat=True)
+        )
+
+        # Step 2-4: For each duplicate Fact instance, delete all but the first instance
+        count = 0
+        for fact in duplicate_facts:
+            duplicates = Fact.objects.filter(fact=fact).exclude(id=Fact.objects.filter(fact=fact).order_by('id').first().id)
+            count += duplicates.count()
+
+            # Compare each duplicate Fact instance to all other Fact instances with the same fact field
+            for duplicate in duplicates:
+                words1 = set(duplicate.fact.split())
+                similar_facts = Fact.objects.filter(fact__icontains=duplicate.fact).exclude(id=duplicate.id)
+                for similar in similar_facts:
+                    words2 = set(similar.fact.split())
+                    intersection_size = len(words1.intersection(words2))
+                    union_size = len(words1.union(words2))
+                    similarity = intersection_size / union_size
+                    if similarity >= threshold/100:
+                        print(similar);
+                        similar.delete()
+
+            duplicates.delete()
+
+        return Response({'message': f'{count} duplicate facts removed'}, status=status.HTTP_200_OK)
 
 class FactLikeViewSet(viewsets.ViewSet):
     def create(self, request, pk=None):
