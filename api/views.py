@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.db.models import Q
 
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
@@ -87,56 +88,77 @@ class FactViewSet(ModelViewSet):
         print(duplicate_facts)
         # Step 2-4: For each duplicate Fact instance, delete all but the first instance
         count = 0
+        deleted_facts = []
         for fact in duplicate_facts:
             duplicates = Fact.objects.filter(fact=fact).exclude(id=Fact.objects.filter(fact=fact).order_by('id').first().id)
             print(duplicates)
+            deleted_facts.append({'fact': fact,'count': duplicates.count()})
             count += duplicates.count()
             duplicates.delete()
 
-        return Response({'message': f'{count} duplicate facts removed'}, status=status.HTTP_200_OK)
+        return Response({'message': f'{count} duplicate facts removed','deleted_facts': deleted_facts}, status=status.HTTP_200_OK)
+    
+    def compute_similarity(self, fact1, fact2):
+        words1 = set(fact1.split())
+        words2 = set(fact2.split())
+        intersection_size = len(words1.intersection(words2))
+        union_size = len(words1.union(words2))
+        similarity = intersection_size / union_size
+        return similarity
     
     
     @action(detail=False, methods=['post'], url_path='remove-similar')
     def remove_similar_facts(self, request):
-        threshold = request.query_params.get('threshold', '80')
+        threshold = request.query_params.get('p', '80')
         try:
             threshold = int(threshold)
-            if threshold < 60:
-                return Response({'message': 'Threshold must be greater than or equal to 60'}, status=status.HTTP_400_BAD_REQUEST)
+            if threshold < 55:
+                return Response({'message': 'Threshold must be greater than or equal to 55'}, status=status.HTTP_400_BAD_REQUEST)
         except ValueError:
             return Response({'message': 'Invalid threshold value'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Step 1: Group Fact instances by their fact field and filter for duplicates
-        duplicate_facts = (
-            Fact.objects
-            .values('fact')
-            .annotate(fact_count=Count('fact'))
-            .filter(fact_count__gt=1)
-            .values_list('fact', flat=True)
-        )
+        # Step 1: Fetch all the unique facts
+        unique_facts = Fact.objects.values_list('id', 'fact')
+        n = len(unique_facts)
 
-        # Step 2-4: For each duplicate Fact instance, delete all but the first instance
+        # Step 2-3: Fetch all the similar facts and delete them
         count = 0
-        for fact in duplicate_facts:
-            duplicates = Fact.objects.filter(fact=fact).exclude(id=Fact.objects.filter(fact=fact).order_by('id').first().id)
-            count += duplicates.count()
+        deleted_facts = []
+        for i in range(n):
+            for j in range(i+1, n):
+                similarity = self.compute_similarity(unique_facts[i][1], unique_facts[j][1])
+                if similarity >= threshold/100:
+                    deleted_fact = Fact.objects.get(id=unique_facts[j][0])
+                    deleted_fact_similarity = similarity * 100
+                    deleted_facts.append({'fact': unique_facts[i][1],'deleted_fact': deleted_fact.fact,'similarity': deleted_fact_similarity})
+                    deleted_fact.delete()
+                    count += 1
 
-            # Compare each duplicate Fact instance to all other Fact instances with the same fact field
-            for duplicate in duplicates:
-                words1 = set(duplicate.fact.split())
-                similar_facts = Fact.objects.filter(fact__icontains=duplicate.fact).exclude(id=duplicate.id)
-                for similar in similar_facts:
-                    words2 = set(similar.fact.split())
-                    intersection_size = len(words1.intersection(words2))
-                    union_size = len(words1.union(words2))
-                    similarity = intersection_size / union_size
-                    if similarity >= threshold/100:
-                        print(similar);
-                        similar.delete()
+        return Response({'message': f'{count} similar facts removed', 'deleted_facts': deleted_facts}, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['post'], url_path='auto_update')
+    def auto_update_fact_by_category(self, request):
+        #! Note this is a very long process
+        category_id = request.query_params.get('category')
+        try:
+            category_id = int(category_id)
+        except:
+            return Response({'message': 'Invalid category'}, status=status.HTTP_400_BAD_REQUEST)
+        facts = Fact.objects.filter(category_id=category_id)
+        for fact in facts:
+            # Update the images of the fact
+            imgURL1, imgURL2, ref, desc = getFactData(fact.fact)
+            if imgURL1!=None:
+                fact.imgURL = imgURL1
+            fact.imgURL2 = imgURL2
+            if ref!=None:
+                fact.ref = ref
+            if desc!=None:
+                fact.desc= desc
+            fact.save()
+        return Response({'message': 'Images updated successfully'})
 
-            duplicates.delete()
 
-        return Response({'message': f'{count} duplicate facts removed'}, status=status.HTTP_200_OK)
 
 class FactLikeViewSet(viewsets.ViewSet):
     def create(self, request, pk=None):

@@ -2,6 +2,10 @@ from random import random
 import re
 import time
 import random
+
+from PIL import Image
+from io import BytesIO
+
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 import requests
@@ -236,6 +240,7 @@ def getDes(soup):
 
 
 def is_url_image(image_url: str):
+    # print(image_url)
     print('Verifying Image')
     image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")
 #    if image_url.count('facebook.com')>0:
@@ -243,8 +248,11 @@ def is_url_image(image_url: str):
 #        return False
     try:
         r = requests.head(image_url, timeout=10)
+        if r.headers.get("content-type") in image_formats:
+            r = requests.get(image_url, timeout=10)
+            img = Image.open(BytesIO(r.content))
+            img.verify()
+            return True
     except:
-        return False
-    if r.headers.get("content-type") in image_formats:
-        return True
+        pass
     return False
