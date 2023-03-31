@@ -74,7 +74,7 @@ class FactViewSet(ModelViewSet):
         elif self.request.method == 'PATCH':
             return FactPatchSerializer
         return FactAddSerializer
-    
+
     @action(detail=False, methods=['post'], url_path='remove-duplicate')
     def remove_duplicate_facts(self, request):
         # Step 1: Group Fact instances by their fact field and filter for duplicates
@@ -90,14 +90,15 @@ class FactViewSet(ModelViewSet):
         count = 0
         deleted_facts = []
         for fact in duplicate_facts:
-            duplicates = Fact.objects.filter(fact=fact).exclude(id=Fact.objects.filter(fact=fact).order_by('id').first().id)
+            duplicates = Fact.objects.filter(fact=fact).exclude(
+                id=Fact.objects.filter(fact=fact).order_by('id').first().id)
             print(duplicates)
-            deleted_facts.append({'fact': fact,'count': duplicates.count()})
+            deleted_facts.append({'fact': fact, 'count': duplicates.count()})
             count += duplicates.count()
             duplicates.delete()
 
-        return Response({'message': f'{count} duplicate facts removed','deleted_facts': deleted_facts}, status=status.HTTP_200_OK)
-    
+        return Response({'message': f'{count} duplicate facts removed', 'deleted_facts': deleted_facts}, status=status.HTTP_200_OK)
+
     def compute_similarity(self, fact1, fact2):
         words1 = set(fact1.split())
         words2 = set(fact2.split())
@@ -105,10 +106,9 @@ class FactViewSet(ModelViewSet):
         union_size = len(words1.union(words2))
         similarity = intersection_size / union_size
         return similarity
-    
-    
+
     @action(detail=False, methods=['post'], url_path='remove-similar')
-    def remove_similar_facts(self, request):
+    def remove_similar_facts_by_category_ids(self, request):
         threshold = request.query_params.get('p', '80')
         try:
             threshold = int(threshold)
@@ -117,47 +117,62 @@ class FactViewSet(ModelViewSet):
         except ValueError:
             return Response({'message': 'Invalid threshold value'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Step 1: Fetch all the unique facts
-        unique_facts = Fact.objects.values_list('id', 'fact')
-        n = len(unique_facts)
+        # Step 1: Fetch all the unique facts belonging to the selected categories
+        cat_ids = request.query_params.get('cat_ids', '')
+        cat_ids_list = cat_ids.split(',')
+        facts = Fact.objects.filter(
+            category__in=cat_ids_list).values_list('id', 'fact')
+        n = len(facts)
 
         # Step 2-3: Fetch all the similar facts and delete them
         count = 0
         deleted_facts = []
+        deleted_ids = []
         for i in range(n):
+            if facts[i][0] in deleted_ids:  # Skip if this fact has already been deleted
+                continue
             for j in range(i+1, n):
-                similarity = self.compute_similarity(unique_facts[i][1], unique_facts[j][1])
-                if similarity >= threshold/100:
-                    deleted_fact = Fact.objects.get(id=unique_facts[j][0])
-                    deleted_fact_similarity = similarity * 100
-                    deleted_facts.append({'fact': unique_facts[i][1],'deleted_fact': deleted_fact.fact,'similarity': deleted_fact_similarity})
-                    deleted_fact.delete()
-                    count += 1
+                if facts[j][0] in deleted_ids:  # Skip if this fact has already been deleted
+                    continue
+                if i != j:
+                    similarity = self.compute_similarity(
+                        facts[i][1], facts[j][1])
+                    if similarity >= threshold/100:
+                        deleted_fact = Fact.objects.get(id=facts[j][0])
+                        deleted_fact_similarity = similarity * 100
+                        deleted_facts.append(
+                            {'fact': facts[i][1], 'deleted_fact': deleted_fact.fact, 'similarity': deleted_fact_similarity})
+                        deleted_fact.delete()
+                        deleted_ids.append(facts[j][0])
+                        count += 1
 
         return Response({'message': f'{count} similar facts removed', 'deleted_facts': deleted_facts}, status=status.HTTP_200_OK)
-    
-    @action(detail=False, methods=['post'], url_path='auto_update')
-    def auto_update_fact_by_category(self, request):
-        #! Note this is a very long process
-        category_id = request.query_params.get('category')
-        try:
-            category_id = int(category_id)
-        except:
-            return Response({'message': 'Invalid category'}, status=status.HTTP_400_BAD_REQUEST)
-        facts = Fact.objects.filter(category_id=category_id)
-        for fact in facts:
-            # Update the images of the fact
-            imgURL1, imgURL2, ref, desc = getFactData(fact.fact)
-            if imgURL1!=None:
-                fact.imgURL = imgURL1
-            fact.imgURL2 = imgURL2
-            if ref!=None:
-                fact.ref = ref
-            if desc!=None:
-                fact.desc= desc
-            fact.save()
-        return Response({'message': 'Images updated successfully'})
 
+    @action(detail=False, methods=['post'], url_path='auto_update')
+    def auto_update_fact_by_id(self, request):
+        #! Note this is a very long process
+        fact_id = ''
+        try:
+            fact_id = request.query_params.get('id', '')
+        except:
+            return Response({'message': 'Invalid id'}, status=status.HTTP_400_BAD_REQUEST)
+        fact = Fact.objects.filter(id=fact_id).first()
+        # Update the images of the fact
+        imgURL1, imgURL2, ref, desc = getFactData(fact.fact)
+        if not (imgURL1 and imgURL2):
+            fact.imgURL = fact.category.imgURL
+        else:
+            if imgURL1:
+                fact.imgURL = imgURL1
+            else:
+                fact.imgURL = imgURL2
+        fact.imgURL2 = imgURL2
+        if ref != None:
+            fact.ref = ref
+        if desc != None:
+            fact.desc = desc
+        fact.save()
+        return Response({'message': 'Fact updated successfully'})
 
 
 class FactLikeViewSet(viewsets.ViewSet):

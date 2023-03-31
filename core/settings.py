@@ -30,7 +30,7 @@ ALLOWED_HOSTS = [
     'django-images-dev.ap-south-1.elasticbeanstalk.com', 'api.studentmitra.in', '127.0.0.1:8000', '127.0.0.1', 'tdevelopers-django.s3.ap-south-1.amazonaws.com']
 
 CORS_ALLOWED_ORIGINS = [
-    'https://greenapp.netlify.app', 'https://factfry.netlify.app', 'https://app.factjano.com', 'http://localhost:45879', 'https://tdevelopers-django.s3.ap-south-1.amazonaws.com'
+    'https://greenapp.netlify.app', 'https://factfry.netlify.app', 'https://app.factjano.com', 'https://admin.factjano.com', 'http://localhost:45879', 'https://tdevelopers-django.s3.ap-south-1.amazonaws.com'
 ]
 
 # '127.0.0.1:8000', '127.0.0.1'
@@ -218,7 +218,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 
-#All Auth Related UIs
+# All Auth Related UIs
 # PASSWORD_RESET_CONFIRM_URL = '/accounts/auth/password/reset/key/{uidb64}/{token}/'
 
 ACCOUNT_EMAIL_CONFIRMATION_URL = '/accounts/auth/email/confirmation/'
