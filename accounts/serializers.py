@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 UserModel = get_user_model()
 
+
 class CustomUserSerializer(UserDetailsSerializer):
     class Meta:
         extra_fields = []
@@ -16,6 +17,8 @@ class CustomUserSerializer(UserDetailsSerializer):
             extra_fields.append('last_name')
         if hasattr(UserModel, 'premium'):
             extra_fields.append('premium')
+        if hasattr(UserModel, 'redeemedPremium'):
+            extra_fields.append('redeemedPremium')
         if hasattr(UserModel, 'coins'):
             extra_fields.append('coins')
         if hasattr(UserModel, 'avtar'):
@@ -26,6 +29,8 @@ class CustomUserSerializer(UserDetailsSerializer):
             extra_fields.append('last_seen')
         if hasattr(UserModel, 'premium_start_date'):
             extra_fields.append('premium_start_date')
+        if hasattr(UserModel, 'premium_renewal_date'):
+            extra_fields.append('premium_renewal_date')
         if hasattr(UserModel, 'premium_end_date'):
             extra_fields.append('premium_end_date')
         if hasattr(UserModel, 'shared_fact_counts'):

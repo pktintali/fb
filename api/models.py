@@ -6,11 +6,13 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     profile_pic = models.ImageField(upload_to="profile_pics/", blank=True)
     premium = models.BooleanField(default=False)
+    redeemedPremium = models.BooleanField(default=False)
     coins = models.IntegerField(default=0)
     shared_fact_counts = models.IntegerField(default=0)
     last_seen = models.DateTimeField(auto_now=True)
     streak = models.IntegerField(default=0)
     premium_start_date = models.DateField(null=True)
+    premium_renewal_date = models.DateField(null=True)
     premium_end_date = models.DateField(null=True)
     avtar = models.IntegerField(default=0, blank=True, null=True)
     
