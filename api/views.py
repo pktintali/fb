@@ -409,6 +409,13 @@ class MyInterestViewSet(ModelViewSet):
         user = self.request.user
         queryset = UserInterest.objects.filter(user=user).order_by('id').all()
         return queryset
+    
+    @action(detail=False, methods=['delete'],url_path='delete_premium_interests')
+    def delete_premium_categories(self, request):
+        user_interests = UserInterest.objects.filter(user=request.user, category__isPremium=True)
+        user_interests.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 class SubscriptionViewSet(ModelViewSet):
@@ -442,6 +449,12 @@ class MyTasksViewSet(ModelViewSet):
         user = self.request.user
         queryset = UserTasks.objects.filter(user=user).order_by('id').all()
         return queryset
+
+    @action(detail=False, methods=['delete'],url_path='delete_tasks')
+    def delete_tasks(self, request):
+        user_tasks = UserTasks.objects.filter(user=request.user).exclude(task_number__in=[1, 2])
+        user_tasks.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CategoryRequestViewSet(ModelViewSet):

@@ -29,8 +29,6 @@ class CustomUserSerializer(UserDetailsSerializer):
             extra_fields.append('last_seen')
         if hasattr(UserModel, 'premium_start_date'):
             extra_fields.append('premium_start_date')
-        if hasattr(UserModel, 'premium_renewal_date'):
-            extra_fields.append('premium_renewal_date')
         if hasattr(UserModel, 'premium_end_date'):
             extra_fields.append('premium_end_date')
         if hasattr(UserModel, 'shared_fact_counts'):

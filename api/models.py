@@ -12,7 +12,6 @@ class User(AbstractUser):
     last_seen = models.DateTimeField(auto_now=True)
     streak = models.IntegerField(default=0)
     premium_start_date = models.DateField(null=True)
-    premium_renewal_date = models.DateField(null=True)
     premium_end_date = models.DateField(null=True)
     avtar = models.IntegerField(default=0, blank=True, null=True)
     
@@ -110,12 +109,18 @@ class Subscription(models.Model):
 class UserTasks(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     task_number = models.IntegerField()
+    
+    class Meta:
+        unique_together = ('user', 'task_number',)
 
 
 class UserInterest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'category',)
 
 
 class CategoryRequest(models.Model):
