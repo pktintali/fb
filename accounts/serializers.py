@@ -1,10 +1,11 @@
+from rest_framework import serializers
 from dj_rest_auth.serializers import UserDetailsSerializer
 from django.contrib.auth import get_user_model
 
 UserModel = get_user_model()
 
-
 class CustomUserSerializer(UserDetailsSerializer):
+    show_alert = serializers.BooleanField(default=False)
     class Meta:
         extra_fields = []
         if hasattr(UserModel, 'USERNAME_FIELD'):
@@ -35,6 +36,7 @@ class CustomUserSerializer(UserDetailsSerializer):
             extra_fields.append('shared_fact_counts')
         if hasattr(UserModel, 'is_staff'):
             extra_fields.append('is_staff')
+        extra_fields.append('show_alert')
         model = UserModel
         fields = ('pk', *extra_fields)
         read_only_fields = ('email',)

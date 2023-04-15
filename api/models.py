@@ -7,7 +7,7 @@ class User(AbstractUser):
     profile_pic = models.ImageField(upload_to="profile_pics/", blank=True)
     premium = models.BooleanField(default=False)
     redeemedPremium = models.BooleanField(default=False)
-    coins = models.IntegerField(default=0)
+    coins = models.IntegerField(default=50)
     shared_fact_counts = models.IntegerField(default=0)
     last_seen = models.DateTimeField(auto_now=True)
     streak = models.IntegerField(default=0)
