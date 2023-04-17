@@ -6,15 +6,14 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     profile_pic = models.ImageField(upload_to="profile_pics/", blank=True)
     premium = models.BooleanField(default=False)
-    redeemedPremium = models.BooleanField(default=False)
+    redeemedPremium = models.BooleanField(default=False,verbose_name='Redeemed')
     coins = models.IntegerField(default=50)
-    shared_fact_counts = models.IntegerField(default=0)
+    shared_fact_counts = models.IntegerField(default=0,verbose_name='Shared')
     last_seen = models.DateTimeField(auto_now=True)
     streak = models.IntegerField(default=0)
     premium_start_date = models.DateField(null=True)
     premium_end_date = models.DateField(null=True)
     avtar = models.IntegerField(default=0, blank=True, null=True)
-    
     
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
@@ -62,7 +61,8 @@ class Fact(models.Model):
     isAd = models.BooleanField(default=False, null=True)
 
     def __str__(self) -> str:
-        return self.fact[:20]
+        # return self.fact[:20]
+        return self.fact[:150]
 
 
 class DailyFact(models.Model):
@@ -98,7 +98,12 @@ class Reward(models.Model):
     def __str__(self) -> str:
         return self.title
 
+    class Meta:
+        verbose_name = "Coupon"
+        verbose_name_plural = "Coupons"
 
+
+#! Not in use in production
 class Subscription(models.Model):
     cost = models.IntegerField()
     type = models.CharField(max_length=20)

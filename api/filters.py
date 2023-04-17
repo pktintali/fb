@@ -1,4 +1,5 @@
 from api.models import *
+from django.contrib import admin
 from django_filters import FilterSet
 
 class CategoryFilter(FilterSet):
@@ -12,7 +13,7 @@ class CategoryFilter(FilterSet):
         }
 
 
-class FactFilter(FilterSet):
+class FactFilter(FilterSet,admin.ListFilter):
     class Meta:
         model = Fact
         fields = {
