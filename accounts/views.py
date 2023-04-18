@@ -34,22 +34,23 @@ class CustomUserDetailsView(UserDetailsView):
             # Check if user has reached a milestone and set showAlert accordingly
             if user.streak in [5, 10, 20, 40, 80, 160, 320, 640]:
                 showAlert = True
+                user.coins += (user.streak*20)
                 if user.streak == 5:
-                    user.coins += 100
+                    UserTasks.objects.create(user=user, task_number=3)
                 elif user.streak == 10:
-                    user.coins += 200
+                    UserTasks.objects.create(user=user, task_number=4)
                 elif user.streak == 20:
-                    user.coins += 400
+                    UserTasks.objects.create(user=user, task_number=5)
                 elif user.streak == 40:
-                    user.coins += 800
+                    UserTasks.objects.create(user=user, task_number=6)
                 elif user.streak == 80:
-                    user.coins += 1600
+                    UserTasks.objects.create(user=user, task_number=7)
                 elif user.streak == 160:
-                    user.coins += 3200
+                    UserTasks.objects.create(user=user, task_number=8)
                 elif user.streak == 320:
-                    user.coins += 6400
+                    UserTasks.objects.create(user=user, task_number=9)
                 elif user.streak == 640:
-                    user.coins += 12800
+                    UserTasks.objects.create(user=user, task_number=10)
             else:
                 showAlert = False
 
@@ -64,7 +65,7 @@ class CustomUserDetailsView(UserDetailsView):
             # get serialized user data
             serializer = self.get_serializer(user)
             response_data = serializer.data
-        return Response(serializer.data)
+        return Response(response_data)
 
 
 class ProfileView(TemplateView):
