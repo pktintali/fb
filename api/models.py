@@ -1,5 +1,7 @@
 
 from django.db import models
+from django.utils import timezone
+
 from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
@@ -11,10 +13,11 @@ class User(AbstractUser):
     shared_fact_counts = models.IntegerField(default=0,verbose_name='Shared')
     last_seen = models.DateTimeField(auto_now=True)
     streak = models.IntegerField(default=0)
-    premium_start_date = models.DateField(null=True)
-    premium_end_date = models.DateField(null=True)
+    premium_start_date = models.DateField(null=True,blank=True)
+    premium_end_date = models.DateField(null=True,blank=True)
     avtar = models.IntegerField(default=0, blank=True, null=True)
-    
+
+#! Note this import should not go on top  
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 
@@ -145,3 +148,17 @@ class ReportFact(models.Model):
 
     class Meta:
         unique_together = ('fact', 'email',)
+
+
+class Views(models.Model):
+    fact = models.ForeignKey(Fact, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    expiry_date = models.DateTimeField()
+
+    class Meta:
+        unique_together = ('fact', 'user',)
+    
+    def save(self, *args, **kwargs):
+        self.expiry_date = timezone.now() + timezone.timedelta(days=60)
+        super().save(*args, **kwargs)

@@ -5,11 +5,12 @@ from api.models import *
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'first_name', 'last_name', 'email', 'last_seen',
-                    'coins', 'avtar', 'streak', 'shared_fact_counts', 'premium', 'redeemedPremium', 'premium_end_date']
-    list_filter = ['premium', 'redeemedPremium',
-                   'last_seen', 'premium_end_date']
+    list_display = ['id', 'username', 'email', 'last_seen', 'last_login', 'date_joined',
+                    'coins', 'avtar', 'streak', 'shared_fact_counts', 'premium', 'redeemedPremium', 'premium_end_date', 'is_staff', ]
+    list_filter = ['last_seen', 'last_login', 'date_joined',
+                   'premium', 'redeemedPremium', 'premium_end_date', 'is_staff']
     search_fields = ['username', 'first_name', 'last_name']
+    list_per_page = 50
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -18,6 +19,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display_links = ['image_url']
     list_filter = ['isPremium', 'language']
     search_fields = ['desc', 'name']
+    list_per_page = 50
 
     def image_url(self, obj):
         return obj.imgURL[:50] + '...' if len(obj.imgURL) > 50 else obj.imgURL
@@ -36,6 +38,7 @@ class FactAdmin(admin.ModelAdmin):
     list_filter = ['isAd', 'category__isPremium']
     search_fields = ['fact', 'desc']
     list_select_related = True
+    list_per_page = 50
 
     def fact_(self, obj):
         return obj.fact[:100] + '...' if len(obj.fact) > 100 else obj.fact
@@ -51,6 +54,7 @@ class FactAdmin(admin.ModelAdmin):
 class DailyFactAdmin(admin.ModelAdmin):
     list_display = ['id', 'fact', 'premium_cat', 'date']
     list_editable = ['fact']
+    list_per_page = 50
 
     def premium_cat(self, obj):
         if obj.fact.category.isPremium:
@@ -67,6 +71,7 @@ class BookMarkAdmin(admin.ModelAdmin):
                    'fact__category__isPremium']
     search_fields = ['user__username', 'fact__category__name']
     search_help_text = 'Search in [username] [category]'
+    list_per_page = 50
 
     def category(self, obj):
         return obj.fact.category
@@ -93,6 +98,7 @@ class LikeAdmin(admin.ModelAdmin):
                    'fact__category__isPremium']
     search_fields = ['user__username', 'fact__category__name']
     search_help_text = 'Search in [username] [category]'
+    list_per_page = 50
 
     def category(self, obj):
         return obj.fact.category
@@ -118,6 +124,7 @@ class CouponAdmin(admin.ModelAdmin):
     list_filter = ['cost']
     search_fields = ['title', 'description', 'cost']
     search_help_text = 'Search in [title] [description] [cost]'
+    list_per_page = 50
 
     def image_url(self, obj):
         return obj.imgURL[:50] + '...' if len(obj.imgURL) > 50 else obj.imgURL
@@ -129,6 +136,7 @@ class UserTaskAdmin(admin.ModelAdmin):
     list_filter = ['user__premium', 'task_number']
     search_fields = ['user']
     search_help_text = 'Search in [user]'
+    list_per_page = 50
 
     def premium_user(self, obj):
         if (obj.user.premium or obj.user.redeemedPremium):
@@ -144,6 +152,7 @@ class UserInterestAdmin(admin.ModelAdmin):
     list_filter = ['user__premium', 'category__isPremium', 'timestamp']
     search_fields = ['user', 'category']
     search_help_text = 'Search in [user] [category]'
+    list_per_page = 50
 
     def premium_user(self, obj):
         if (obj.user.premium or obj.user.redeemedPremium):
@@ -166,6 +175,7 @@ class CategoryRequestAdmin(admin.ModelAdmin):
     list_filter = ['user__premium', 'timestamp', 'status']
     search_fields = ['user', 'description']
     search_help_text = 'Search in [user] [description]'
+    list_per_page = 50
 
     def premium_user(self, obj):
         if (obj.user.premium or obj.user.redeemedPremium):
@@ -178,9 +188,10 @@ class CategoryRequestAdmin(admin.ModelAdmin):
 class ReportFactAdmin(admin.ModelAdmin):
     list_display = ['id', 'fact_', 'category', 'premium_category', 'email',
                     'reason', 'description', 'timestamp']
-    list_filter = ['timestamp','fact__category__isPremium']
+    list_filter = ['timestamp', 'fact__category__isPremium']
     search_fields = ['fact__fact', 'reason', 'description']
     search_help_text = 'Search in [fact] [reason] [description]'
+    list_per_page = 50
 
     def fact_(self, obj):
         return obj.fact.fact[:100] + '...' if len(obj.fact.fact) > 100 else obj.fact.fact
@@ -195,23 +206,29 @@ class ReportFactAdmin(admin.ModelAdmin):
             return format_html('<span style="color:red;">&#10008;</span>')
     premium_category.allow_tags = True
 
-# Register your models here.
-# admin.site.register(
-#     [
-#         User,
-#         Category,
-#         Fact,
-#         BookMark,
-#         Like,
-#         Reward,
-#         Subscription,
-#         UserTasks,
-#         DailyFact,
-#         CategoryRequest,
-#         ReportFact,
-#         UserInterest,
-#     ]
-# )
+
+def make_expire(modeladmin, request, queryset):
+    queryset.update(expiry_date=timezone.now())
+
+
+def set_expiry_date_by_2_month(modeladmin, request, queryset):
+    for view in queryset:
+        view.expiry_date += timezone.timedelta(days=60)
+        view.save()
+
+
+
+
+class ViewsAdmin(admin.ModelAdmin):
+    list_display = ['id', 'fact_', 'user', 'timestamp', 'expiry_date']
+    list_filter = ['timestamp', 'expiry_date']
+    search_fields = ['user']
+    search_help_text = 'Search in [user]'
+    list_per_page = 50
+    actions = [make_expire, set_expiry_date_by_2_month]
+
+    def fact_(self, obj):
+        return obj.fact.fact[:100] + '...' if len(obj.fact.fact) > 100 else obj.fact.fact
 
 
 admin.site.register(User, UserAdmin)
@@ -225,3 +242,4 @@ admin.site.register(UserTasks, UserTaskAdmin)
 admin.site.register(UserInterest, UserInterestAdmin)
 admin.site.register(CategoryRequest, CategoryRequestAdmin)
 admin.site.register(ReportFact, ReportFactAdmin)
+admin.site.register(Views, ViewsAdmin)

@@ -8,10 +8,13 @@ router.register('categories', CategoryViewSet)
 router.register('facts', FactViewSet)
 router.register('customized-facts', CustomizedFactViewSet,
                 basename='customized-facts')
+router.register('customized-unique-facts', CustomizedUniqueFactViewSet,
+                basename='customized-unique-facts')
 router.register('bookmarks', BookMarkViewSet)
 router.register('my-bookmarks', MyBookMarkViewSet, basename="my-bookmarks")
 router.register('likes', LikeViewSet)
 router.register('my-likes', MyLikeViewSet, basename='my-likes')
+router.register('fact_views', ViewsViewSet,basename='fact-views')
 router.register('rewards', RewardViewSet)
 router.register('subscriptions', SubscriptionViewSet)
 router.register('user-tasks', UserTasksViewSet)

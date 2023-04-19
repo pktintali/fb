@@ -41,6 +41,14 @@ class LikeFilter(FilterSet):
             'user': ['exact']
         }
 
+class ViewsFilter(FilterSet):
+    class Meta:
+        model = Views
+        fields = {
+            'fact': ['exact'],
+            'user': ['exact']
+        }
+
 
 class UserTaskFilter(FilterSet):
     class Meta:

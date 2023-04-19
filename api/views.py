@@ -1,5 +1,5 @@
 from datetime import datetime
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
@@ -53,7 +53,7 @@ class FactViewSet(ModelViewSet):
     ordering_fields = ['timestamp', 'likes_count']
     permission_classes = [IsAdminOrReadOnly]
     queryset = Fact.objects.select_related('category').annotate(
-        likes_count=Count('like')).order_by('?').all()
+        likes_count=Count('like'), views_count=Count('views')).order_by('?').all()
 
     def list(self, request, *args, **kwargs):
         response = super(FactViewSet, self).list(request, args, kwargs)
@@ -266,6 +266,71 @@ class CustomizedFactViewSet(ModelViewSet):
         return FactAddSerializer
 
 
+class CustomizedUniqueFactViewSet(ModelViewSet):
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = FactFilter
+    pagination_class = FactPagination
+    ordering_fields = ['timestamp', 'likes_count']
+    permission_classes = [IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            use_interests = UserInterest.objects.filter(user=user)
+            interests = use_interests.values_list('category', flat=True)
+            viewed_facts = Views.objects.filter(
+                user=user).values_list('fact', flat=True)
+
+            categories_prefetch = Prefetch(
+                'category', queryset=Category.objects.filter(id__in=interests))
+
+            queryset = Fact.objects.select_related('category').annotate(
+                likes_count=Count('like')).filter(category__in=interests).exclude(
+                id__in=viewed_facts).order_by('?').prefetch_related(categories_prefetch)
+
+            user_lang = 'english'
+            if use_interests.exists():
+                user_lang = random.choice(use_interests).category.language
+
+            other_facts = Fact.objects.filter(category__language=user_lang).exclude(
+                category__in=interests).exclude(category__name='Ad').exclude(
+                id__in=viewed_facts).order_by('?').all()
+
+            if len(interests) > 15:
+                other_facts = other_facts[:20]
+
+            if len(interests) <= 15 and len(interests) > 3:
+                other_facts = other_facts[:25]
+
+            if len(interests) <= 3:
+                other_facts = other_facts[:35]
+
+            queryset |= other_facts
+
+            return queryset
+
+        return Fact.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        response = super(CustomizedUniqueFactViewSet, self).list(
+            request, args, kwargs)
+        if self.request.user.is_authenticated:
+            fact_list = response.data['results']
+            for f in fact_list:
+                liked = Like.objects.filter(
+                    fact_id=f['id'], user=request.user).exists()
+                bookmarked = BookMark.objects.filter(
+                    fact_id=f['id'], user=request.user).exists()
+                f['isLiked'] = liked
+                f['isBookmarked'] = bookmarked
+        return response
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return FactSerializer
+        return FactAddSerializer
+
+
 class BookMarkViewSet(ModelViewSet):
     queryset = BookMark.objects.select_related('fact').annotate(
         likes_count=Count('fact__like')).order_by('-timestamp').all()
@@ -380,6 +445,49 @@ class MyLikeViewSet(ModelViewSet):
         return LikeAddSerializer
 
 
+class ViewsViewSet(ModelViewSet):
+    queryset = Views.objects.select_related('fact').annotate(
+        views=Count('fact__views')).all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ViewsFilter
+    ordering_fields = ['timestamp']
+    pagination_class = BookmarkAndLikePagination
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = ViewsSerializer
+
+    def create(self, request, *args, **kwargs):
+        print(request.data.get('fact', []))
+        fact_ids = request.data.get('fact_ids', [])
+        if len(fact_ids) == 0:
+            fact_ids = [request.data.get('fact')]
+
+        user_id = request.user.id
+        views = []
+        for fact_id in fact_ids:
+            view = Views(fact_id=fact_id, expiry_date=timezone.now(
+            ) + timezone.timedelta(days=60), user_id=user_id)
+            views.append(view)
+        Views.objects.bulk_create(views)
+        serializer = self.get_serializer(views, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return ViewsSerializer
+        return ViewsAddSerializer
+
+    @action(detail=False, methods=['delete'])
+    def delete_expired(self, request):
+        expired_views = Views.objects.filter(expiry_date__lte=timezone.now())
+        count = expired_views.count()
+        expired_views.delete()
+        message = f"{count} expired views deleted." if count > 0 else "No expired likes found."
+        return Response({'message': message, 'count': count})
+
+
 class RewardViewSet(ModelViewSet):
     queryset = Reward.objects.order_by('id').all()
     serializer_class = RewardSerializer
@@ -409,13 +517,13 @@ class MyInterestViewSet(ModelViewSet):
         user = self.request.user
         queryset = UserInterest.objects.filter(user=user).order_by('id').all()
         return queryset
-    
-    @action(detail=False, methods=['delete'],url_path='delete_premium_interests')
+
+    @action(detail=False, methods=['delete'], url_path='delete_premium_interests')
     def delete_premium_categories(self, request):
-        user_interests = UserInterest.objects.filter(user=request.user, category__isPremium=True)
+        user_interests = UserInterest.objects.filter(
+            user=request.user, category__isPremium=True)
         user_interests.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 
 class SubscriptionViewSet(ModelViewSet):
@@ -450,9 +558,10 @@ class MyTasksViewSet(ModelViewSet):
         queryset = UserTasks.objects.filter(user=user).order_by('id').all()
         return queryset
 
-    @action(detail=False, methods=['delete'],url_path='delete_tasks')
+    @action(detail=False, methods=['delete'], url_path='delete_tasks')
     def delete_tasks(self, request):
-        user_tasks = UserTasks.objects.filter(user=request.user).exclude(task_number__in=[1, 2])
+        user_tasks = UserTasks.objects.filter(
+            user=request.user).exclude(task_number__in=[1, 2])
         user_tasks.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

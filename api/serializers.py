@@ -59,9 +59,10 @@ class FactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Fact
-        fields = ['id', 'fact', 'timestamp', 'likes_count',
+        fields = ['id', 'fact', 'timestamp', 'views_count', 'likes_count',
                   'imgURL', 'imgURL2', 'ref', 'desc', 'category', 'isAd']
     likes_count = serializers.IntegerField(read_only=True)
+    views_count = serializers.IntegerField(read_only=True)
 
 
 class FactPatchSerializer(serializers.ModelSerializer):
@@ -117,6 +118,21 @@ class LikeSerializer(serializers.ModelSerializer):
 class LikeAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
+        fields = ['fact']
+
+
+class ViewsSerializer(serializers.ModelSerializer):
+    fact = FactSerializer()
+
+    class Meta:
+        model = Views
+        fields = "__all__"
+    views = serializers.IntegerField(read_only=True)
+
+
+class ViewsAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Views
         fields = ['fact']
 
 
