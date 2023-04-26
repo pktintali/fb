@@ -135,6 +135,7 @@ class CategoryRequest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     description = models.TextField()
+    response = models.CharField(max_length=500,null=True,blank=True)
     # Status 0 Waiting, Status 1 Accepted, Status 2 Rejected
     status = models.IntegerField(default=0)
 

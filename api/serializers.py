@@ -177,7 +177,7 @@ class CategoryRequestSerializer(serializers.ModelSerializer):
 class CategoryRequestAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoryRequest
-        fields = ['description', 'status']
+        fields = ['description', 'status','response']
 
 
 class ReportFactSerializer(serializers.ModelSerializer):
