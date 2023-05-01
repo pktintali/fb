@@ -1,16 +1,40 @@
+import datetime
+from django.utils import formats
 from django.contrib import admin
 from django.utils.html import format_html
 
 from api.models import *
 
 
+def formatted_timestamp(utc_time):
+    # Get the 'Asia/Kolkata' time zone offset
+    asia_kolkata_offset = datetime.timedelta(hours=5, minutes=30)
+
+    # Convert the timestamp to 'Asia/Kolkata' time zone
+    local_time = utc_time + asia_kolkata_offset
+
+    # Format the local time as desired
+    formatted_time = formats.date_format(local_time, format='P j F Y')
+
+    return formatted_time
+
+
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'email', 'last_seen', 'last_login', 'date_joined',
-                    'coins', 'avtar', 'streak', 'shared_fact_counts', 'premium', 'redeemedPremium', 'premium_end_date', 'is_staff', ]
+    list_display = ['id', 'username', 'email', '_last_seen_xxxxxxxxxxxxx', '_date_joined_xxxxxxxxxxxxx',
+                    'coins', 'avtar', 'streak', 'shared_fact_counts', 'premium', 'redeemedPremium', 'premium_end_date', 'is_staff', '_last_login_xxxxxxxxxxxxx', ]
     list_filter = ['last_seen', 'last_login', 'date_joined',
                    'premium', 'redeemedPremium', 'premium_end_date', 'is_staff']
     search_fields = ['username', 'first_name', 'last_name']
     list_per_page = 50
+
+    def _last_seen_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.last_seen)
+
+    def _last_login_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.last_login)
+
+    def _date_joined_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.date_joined)
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -33,7 +57,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 class FactAdmin(admin.ModelAdmin):
-    list_display = ['id', 'fact_', 'category', 'premium', 'timestamp', 'isAd']
+    list_display = ['id', 'fact_', 'category',
+                    'premium', '_timestamp_xxxxxxxxxxxxx', 'isAd']
     list_display_links = ['fact_']
     list_filter = ['isAd', 'category__isPremium']
     search_fields = ['fact', 'desc']
@@ -42,6 +67,9 @@ class FactAdmin(admin.ModelAdmin):
 
     def fact_(self, obj):
         return obj.fact[:100] + '...' if len(obj.fact) > 100 else obj.fact
+
+    def _timestamp_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.timestamp)
 
     def premium(self, obj):
         if obj.category.isPremium:
@@ -66,7 +94,7 @@ class DailyFactAdmin(admin.ModelAdmin):
 
 class BookMarkAdmin(admin.ModelAdmin):
     list_display = ['id', 'fact', 'category', 'pc', 'user',
-                    'pu',  'timestamp']
+                    'pu',  '_timestamp_xxxxxxxxxxxxx']
     list_filter = ['timestamp', 'user__premium',
                    'fact__category__isPremium']
     search_fields = ['user__username', 'fact__category__name']
@@ -75,6 +103,9 @@ class BookMarkAdmin(admin.ModelAdmin):
 
     def category(self, obj):
         return obj.fact.category
+
+    def _timestamp_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.timestamp)
 
     def pu(self, obj):
         if (obj.user.premium or obj.user.redeemedPremium):
@@ -93,7 +124,7 @@ class BookMarkAdmin(admin.ModelAdmin):
 
 class LikeAdmin(admin.ModelAdmin):
     list_display = ['id', 'fact', 'category', 'pc', 'user',
-                    'pu',  'timestamp']
+                    'pu',  '_timestamp_xxxxxxxxxxxxx']
     list_filter = ['timestamp', 'user__premium',
                    'fact__category__isPremium']
     search_fields = ['user__username', 'fact__category__name']
@@ -102,6 +133,9 @@ class LikeAdmin(admin.ModelAdmin):
 
     def category(self, obj):
         return obj.fact.category
+
+    def _timestamp_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.timestamp)
 
     def pu(self, obj):
         if (obj.user.premium or obj.user.redeemedPremium):
@@ -147,12 +181,15 @@ class UserTaskAdmin(admin.ModelAdmin):
 
 class UserInterestAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'premium_user',
-                    'category', 'premium_category', 'timestamp']
+                    'category', 'premium_category', '_timestamp_xxxxxxxxxxxxx']
     # list_display_links = []
     list_filter = ['user__premium', 'category__isPremium', 'timestamp']
     search_fields = ['user', 'category']
     search_help_text = 'Search in [user] [category]'
     list_per_page = 50
+
+    def _timestamp_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.timestamp)
 
     def premium_user(self, obj):
         if (obj.user.premium or obj.user.redeemedPremium):
@@ -170,12 +207,15 @@ class UserInterestAdmin(admin.ModelAdmin):
 
 class CategoryRequestAdmin(admin.ModelAdmin):
     list_display = ['id', 'description', 'user',
-                    'premium_user', 'status', 'timestamp']
+                    'premium_user', 'status', '_timestamp_xxxxxxxxxxxxx']
     # list_display_links = []
     list_filter = ['user__premium', 'timestamp', 'status']
     search_fields = ['user', 'description']
     search_help_text = 'Search in [user] [description]'
     list_per_page = 50
+
+    def _timestamp_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.timestamp)
 
     def premium_user(self, obj):
         if (obj.user.premium or obj.user.redeemedPremium):
@@ -187,7 +227,7 @@ class CategoryRequestAdmin(admin.ModelAdmin):
 
 class ReportFactAdmin(admin.ModelAdmin):
     list_display = ['id', 'fact_', 'category', 'premium_category', 'email',
-                    'reason', 'description', 'timestamp']
+                    'reason', 'description', '_timestamp_xxxxxxxxxxxxx']
     list_filter = ['timestamp', 'fact__category__isPremium']
     search_fields = ['fact__fact', 'reason', 'description']
     search_help_text = 'Search in [fact] [reason] [description]'
@@ -195,6 +235,9 @@ class ReportFactAdmin(admin.ModelAdmin):
 
     def fact_(self, obj):
         return obj.fact.fact[:100] + '...' if len(obj.fact.fact) > 100 else obj.fact.fact
+
+    def _timestamp_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.timestamp)
 
     def category(self, obj):
         return obj.fact.category
@@ -217,10 +260,9 @@ def set_expiry_date_by_2_month(modeladmin, request, queryset):
         view.save()
 
 
-
-
 class ViewsAdmin(admin.ModelAdmin):
-    list_display = ['id', 'fact_', 'user', 'timestamp', 'expiry_date']
+    list_display = ['id', 'fact_', 'user',
+                    '_timestamp_xxxxxxxxxxxxx', '_expiry_date_xxxxxxxxxxx']
     list_filter = ['timestamp', 'expiry_date']
     search_fields = ['user']
     search_help_text = 'Search in [user]'
@@ -229,6 +271,12 @@ class ViewsAdmin(admin.ModelAdmin):
 
     def fact_(self, obj):
         return obj.fact.fact[:100] + '...' if len(obj.fact.fact) > 100 else obj.fact.fact
+
+    def _timestamp_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.timestamp)
+
+    def _expiry_date_xxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.expiry_date)
 
 
 admin.site.register(User, UserAdmin)
