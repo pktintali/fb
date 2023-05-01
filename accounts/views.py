@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.utils import timezone
 from rest_framework.response import Response
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
@@ -9,6 +10,7 @@ from allauth.account.views import LoginView, PasswordResetView as APasswordReset
 from .serializers import CustomUserSerializer
 
 from api.models import UserTasks
+
 
 class CustomUserDetailsView(UserDetailsView):
     serializer_class = CustomUserSerializer
@@ -65,11 +67,15 @@ class CustomUserDetailsView(UserDetailsView):
             # get serialized user data
             serializer = self.get_serializer(user)
             response_data = serializer.data
+            user_model = self.get_queryset().model
+            user_model.objects.filter(pk=user.pk).update(
+                last_seen=timezone.now())
         return Response(response_data)
 
 
 class ProfileView(TemplateView):
     template_name = 'custom/profile.html'
+
 
 class CustomPasswordResetView(prvdj):
     pass
