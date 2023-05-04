@@ -264,7 +264,7 @@ class ViewsAdmin(admin.ModelAdmin):
     list_display = ['id', 'fact_', 'user',
                     '_timestamp_xxxxxxxxxxxxx', '_expiry_date_xxxxxxxxxxx']
     list_filter = ['timestamp', 'expiry_date']
-    search_fields = ['user']
+    search_fields = ['user__username']
     search_help_text = 'Search in [user]'
     list_per_page = 50
     actions = [make_expire, set_expiry_date_by_2_month]
@@ -277,6 +277,16 @@ class ViewsAdmin(admin.ModelAdmin):
 
     def _expiry_date_xxxxxxxxxxx(self, obj):
         return formatted_timestamp(obj.expiry_date)
+    
+class AnalyticsAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user','activity','_timestamp_xxxxxxxxxxxxx']
+    list_filter = ['timestamp','activity']
+    search_fields = ['user__username','activity']
+    search_help_text = 'Search in [user] [activity]'
+    list_per_page = 50
+
+    def _timestamp_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.timestamp)
 
 
 admin.site.register(User, UserAdmin)
@@ -291,3 +301,4 @@ admin.site.register(UserInterest, UserInterestAdmin)
 admin.site.register(CategoryRequest, CategoryRequestAdmin)
 admin.site.register(ReportFact, ReportFactAdmin)
 admin.site.register(Views, ViewsAdmin)
+admin.site.register(Analytics, AnalyticsAdmin)

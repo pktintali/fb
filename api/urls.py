@@ -5,6 +5,7 @@ from .views import *
 router = routers.DefaultRouter()
 router.register('users', UserViewSet)
 router.register('categories', CategoryViewSet)
+router.register('analytics', AnalyticsViewSet)
 router.register('facts', FactViewSet)
 router.register('customized-facts', CustomizedFactViewSet,
                 basename='customized-facts')

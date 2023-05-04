@@ -13,7 +13,7 @@ from api.models import *
 from api.serializers import *
 from api.filters import *
 from api.paginations import *
-from accounts.permissions import IsAdminOrReadOnly, IsAdminOrNoAccess, IsAuthenticatedOrNoAccessEditAdminOnly
+from accounts.permissions import IsAdminOrReadOnly, IsAdminOrNoAccess, IsAuthenticatedOrNoAccessEditAdminOnly, FullAccessWithoutAuthentication
 # Create your views here.
 
 
@@ -603,6 +603,13 @@ class ReportFactViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = ReportFactFilter
     ordering_fields = ['timestamp']
+
+
+class AnalyticsViewSet(ModelViewSet):
+    queryset = Analytics.objects.order_by('id').all()
+    serializer_class = AnalyticsSerializer
+    pagination_class = FactPagination
+    permission_classes = [FullAccessWithoutAuthentication]
 
 
 class DailyFactViewSet(ModelViewSet):

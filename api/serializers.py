@@ -177,7 +177,7 @@ class CategoryRequestSerializer(serializers.ModelSerializer):
 class CategoryRequestAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoryRequest
-        fields = ['description', 'status','response']
+        fields = ['description', 'status', 'response']
 
 
 class ReportFactSerializer(serializers.ModelSerializer):
@@ -190,6 +190,12 @@ class UserInterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserInterest
         fields = ['id', 'category', 'timestamp']
+
+
+class AnalyticsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Analytics
+        fields = "__all__"
 
 
 def getFactData(fact: str):
