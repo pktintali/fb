@@ -49,13 +49,28 @@ class AdViewSet(ModelViewSet):
 class FactViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = FactFilter
-    pagination_class = FactPagination
+    # pagination_class = FactPagination
     ordering_fields = ['timestamp', 'likes_count']
     permission_classes = [IsAdminOrReadOnly]
     queryset = Fact.objects.select_related('category').annotate(
         likes_count=Count('like'), views_count=Count('views')).order_by('?').all()
 
+
+    def get_queryset(self):
+        # Get the base queryset
+        queryset = super().get_queryset()
+        
+        # Apply your custom filters, ordering or any other modifications
+        if self.request.query_params.get('admin_order'):
+            queryset = queryset.order_by('-id')
+        
+        return queryset
+    
     def list(self, request, *args, **kwargs):
+        if self.request.query_params.get('category'):
+            self.pagination_class =  FactPaginationWithFilter
+        else:
+            self.pagination_class =  FactPagination
         response = super(FactViewSet, self).list(request, args, kwargs)
         if self.request.user.is_authenticated:
             fact_list = response.data['results']
@@ -609,6 +624,8 @@ class AnalyticsViewSet(ModelViewSet):
     queryset = Analytics.objects.order_by('id').all()
     serializer_class = AnalyticsSerializer
     pagination_class = FactPagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = AnalyticsFilter
     permission_classes = [FullAccessWithoutAuthentication]
 
 

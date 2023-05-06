@@ -86,3 +86,12 @@ class ReportFactFilter(FilterSet):
             'description': ['contains'],
             'reason': ['contains']
         }
+
+class AnalyticsFilter(FilterSet):
+    class Meta:
+        model = Analytics
+        fields = {
+            'user': ['exact'],
+            'activity': ['exact'],
+            'timestamp': ['exact']
+        }

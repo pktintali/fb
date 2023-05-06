@@ -184,7 +184,7 @@ class UserInterestAdmin(admin.ModelAdmin):
                     'category', 'premium_category', '_timestamp_xxxxxxxxxxxxx']
     # list_display_links = []
     list_filter = ['user__premium', 'category__isPremium', 'timestamp']
-    search_fields = ['user', 'category']
+    search_fields = ['user__username', 'category__name']
     search_help_text = 'Search in [user] [category]'
     list_per_page = 50
 
