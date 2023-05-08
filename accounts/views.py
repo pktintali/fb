@@ -9,7 +9,103 @@ from dj_rest_auth.views import UserDetailsView, PasswordResetView as prvdj
 from allauth.account.views import LoginView, PasswordResetView as APasswordResetView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView, PasswordResetDoneView, ConfirmEmailView, LogoutView, EmailView, ConfirmEmailView, SignupView
 from .serializers import CustomUserSerializer
 
+from allauth.account.models import EmailAddress, EmailConfirmationHMAC
+
 from api.models import UserTasks
+
+
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+from django.contrib.auth import get_user_model
+from rest_framework.authtoken.models import Token
+from rest_framework import status
+import uuid
+from django.contrib.auth import authenticate, login
+
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from api.models import User
+from django.core.mail import EmailMessage
+
+from accounts.permissions import FullAccessWithoutAuthentication
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateAnonymousUserView(APIView):
+    permission_classes = [FullAccessWithoutAuthentication]
+
+    def post(self, request):
+        User = get_user_model()
+        first_name = request.data.get('name1')
+        last_name = request.data.get('name2')
+        if first_name:
+            username = '{}_{}'.format(first_name, uuid.uuid4())
+        else:
+            username = 'anonymous_{}'.format(uuid.uuid4())
+        email = '{}@example.com'.format(username)
+        if first_name and last_name:
+            user = User.objects.create_user(
+                username=username, email=email, first_name=first_name, last_name=last_name)
+        elif first_name:
+            user = User.objects.create_user(
+                username=username, email=email, first_name=first_name)
+        else:
+            user = User.objects.create_user(username=username, email=email)
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'key': token.key}, status=status.HTTP_201_CREATED)
+
+
+class ConvertAnonymousUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        user = User.objects.filter(username=request.user.username).first()
+
+        if user is None:
+            # The anonymous user doesn't exist, return an error response
+            return Response({'error': 'Anonymous user not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        email_already_exist = EmailAddress.objects.filter(email=email).exists()
+        email_already_exist2 = User.objects.filter(email=email).exists()
+        if email_already_exist or email_already_exist2:
+            return Response({'error': 'email already in use'}, status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+
+        # Set the user's email and password
+        user.email = email
+        user.set_password(password)
+        user.save()
+
+        # Create a new EmailAddress record for the user
+        email_address = EmailAddress.objects.create(
+            user=user, email=email, primary=True, verified=False)
+
+        # Log the user in with their new credentials
+        user = authenticate(
+            request=request, username=user.username, password=password)
+        if user is not None:
+            login(request, user)
+
+            # Generate a new token for the user
+            # token, _ = Token.objects.get_or_create(user=user)
+
+            #! Verify password reset link is working or not
+            # Send an email verification link to the user's email address
+            email_subject = '[FactJano] Verify your email address'
+            email_body = 'Please click on the link below to verify your email address for FactJano:\n\n'
+            email_body += request.build_absolute_uri(reverse('account_confirm_email', args=[
+                # urlsafe_base64_encode(force_bytes(user.email)),
+                EmailConfirmationHMAC(user).key
+            ])
+            )
+            email = EmailMessage(email_subject, email_body, to=[email])
+            email.send()
+
+            # Return the new token in the response
+            return Response({'success': True})
+
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomUserDetailsView(UserDetailsView):

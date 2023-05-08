@@ -28,10 +28,14 @@ class UserAdmin(admin.ModelAdmin):
     list_per_page = 50
 
     def _last_seen_xxxxxxxxxxxxx(self, obj):
-        return formatted_timestamp(obj.last_seen)
+        if obj.last_seen:
+            return formatted_timestamp(obj.last_seen)
+        return '-'
 
     def _last_login_xxxxxxxxxxxxx(self, obj):
-        return formatted_timestamp(obj.last_login)
+        if obj.last_login:
+            return formatted_timestamp(obj.last_login)
+        return '-'
 
     def _date_joined_xxxxxxxxxxxxx(self, obj):
         return formatted_timestamp(obj.date_joined)

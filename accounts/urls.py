@@ -5,6 +5,8 @@ from .views import *
 urlpatterns = [
     path('', include('dj_rest_auth.urls')),
     path('registration/', include('dj_rest_auth.registration.urls')),
+    path('anonymous/create/', CreateAnonymousUserView.as_view()),
+    path('anonymous/convert/', ConvertAnonymousUserView.as_view()),
     path('auth/login/', MyLoginView.as_view(), name='account_login'),
     path('auth/signup/', MySignUpView.as_view(), name='account_signup'),
     path('auth/password/reset/', MyPasswordResetView.as_view(), name='account_reset_password'),
