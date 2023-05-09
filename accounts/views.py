@@ -10,7 +10,7 @@ from allauth.account.views import LoginView, PasswordResetView as APasswordReset
 from .serializers import CustomUserSerializer
 
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
-
+from allauth.account.utils import send_email_confirmation
 from api.models import UserTasks
 
 
@@ -23,11 +23,7 @@ from rest_framework import status
 import uuid
 from django.contrib.auth import authenticate, login
 
-from django.urls import reverse
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from api.models import User
-from django.core.mail import EmailMessage
 
 from accounts.permissions import FullAccessWithoutAuthentication
 
@@ -92,15 +88,9 @@ class ConvertAnonymousUserView(APIView):
 
             #! Verify password reset link is working or not
             # Send an email verification link to the user's email address
-            email_subject = '[FactJano] Verify your email address'
-            email_body = 'Please click on the link below to verify your email address for FactJano:\n\n'
-            email_body += request.build_absolute_uri(reverse('account_confirm_email', args=[
-                # urlsafe_base64_encode(force_bytes(user.email)),
-                EmailConfirmationHMAC(user).key
-            ])
+            send_email_confirmation(
+                self.request, user, email=email
             )
-            email = EmailMessage(email_subject, email_body, to=[email])
-            email.send()
 
             # Return the new token in the response
             return Response({'success': True})
