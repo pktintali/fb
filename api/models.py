@@ -260,6 +260,7 @@ class Analytics(models.Model):
         ('ANONYMOUS_SETUP_SAVE_ERROR', 'User got error while saving user data'),
         ('500_PLUS_COINS', 'WAV User Now Have more than 500 coins in profile'),
         ('20_PLUS_DAYS_STREAK', 'WAV User Reached 20 Days or more of streak'),
+        ('TAKEN_NOTIFICATION_ACTION', 'User clicked ok button on notification'),
         
         
         ('SKIP_WARNING_OK', '[STOPPED] - User ignored sign up skip warning - [STOPPED]'),
@@ -285,3 +286,46 @@ class Analytics(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,null=True,blank=True)
     activity = models.CharField(choices=ACTIVITY_CHOICES,max_length=50)
     timestamp = models.DateTimeField(auto_now_add=True) 
+    
+    
+class AppNotification(models.Model):
+        
+    PAGE_CHOICES = [
+    ('APP_SETTINGS', 'APP_SETTINGS'),
+    ('ACCOUNT_SETTINGS', 'ACCOUNT_SETTINGS'),
+    ('FONT_SETTINGS', 'FONT_SETTINGS'),
+    ('LANGUAGE_SETTINGS', 'LANGUAGE_SETTINGS'),
+    ('AVATAR_SETTINGS', 'AVATAR_SETTINGS'),
+    ('ACCOUNT_BACKUP', 'ACCOUNT_BACKUP'),
+    ('RATING_POPUP', 'RATING_POPUP'),
+    ('CATEGORY_REQUEST', 'CATEGORY_REQUEST'),
+    ('CATEGORY_REQUEST_STATUS', 'CATEGORY_REQUEST_STATUS'),
+    ('CATEGORY_ADD', 'CATEGORY_ADD'),
+    ('COIN_PAGE', 'COIN_PAGE'),
+    ('SEARCH_PAGE', 'SEARCH_PAGE'),
+    ('DASHBOARD_PAGE', 'DASHBOARD_PAGE'),
+    ('PREMIUM_PAGE', 'PREMIUM_PAGE'),
+    ('CATEGORY_VIEW_ALL', 'CATEGORY_VIEW_ALL'),
+    ]
+    
+    ALERT_TYPES = [
+        ('INFO','INFO'),
+        ('INFO_REVERSED','INFO_REVERSED'),
+        ('WARNING','WARNING'),
+        ('ERROR','ERROR'),
+        ('SUCCESS','SUCCESS'),
+        ('QUESTION','QUESTION'),
+        ('NO_HEADER','NO_HEADER')
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+    title = models.CharField(max_length=100,blank=True,null=True)
+    description = models.CharField(max_length=500,blank=True,null=True)
+    type = models.CharField(choices=ALERT_TYPES,max_length=50)
+    closeButton = models.BooleanField(default=False)
+    btnOkText = models.CharField(max_length=25,null=True,blank=True)
+    btnCancelText = models.CharField(max_length=25,null=True,blank=True)
+    isBtnOkLink = models.BooleanField(default=False)
+    btnOkLink = models.URLField(blank=True,null=True)
+    targetPage = models.CharField(choices=PAGE_CHOICES,max_length=50,null=True,blank=True)

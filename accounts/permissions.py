@@ -17,7 +17,14 @@ class IsAuthenticatedOrNoAccessEditAdminOnly(permissions.BasePermission):
             return bool(request.user and request.user.is_staff)
         return False
 
-class IsAuthenticatedOrReadOnly(permissions.BasePermission):
+class IsAuthenticatedOrNoAccess(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user and request.user.is_authenticated:
+            return True
+        return False
+    
+    
+class AllAccessIfAuthenticated(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.user and request.user.is_authenticated:
             return True

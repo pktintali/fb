@@ -1,5 +1,5 @@
 from datetime import datetime
-from django.db.models import Q, Prefetch
+from django.db.models import Prefetch
 
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
@@ -13,7 +13,7 @@ from api.models import *
 from api.serializers import *
 from api.filters import *
 from api.paginations import *
-from accounts.permissions import IsAdminOrReadOnly, IsAdminOrNoAccess, IsAuthenticatedOrNoAccessEditAdminOnly, FullAccessWithoutAuthentication
+from accounts.permissions import IsAdminOrReadOnly, IsAdminOrNoAccess, IsAuthenticatedOrNoAccessEditAdminOnly, FullAccessWithoutAuthentication, IsAuthenticatedOrNoAccess
 # Create your views here.
 
 
@@ -55,22 +55,21 @@ class FactViewSet(ModelViewSet):
     queryset = Fact.objects.select_related('category').annotate(
         likes_count=Count('like'), views_count=Count('views')).order_by('?').all()
 
-
     def get_queryset(self):
         # Get the base queryset
         queryset = super().get_queryset()
-        
+
         # Apply your custom filters, ordering or any other modifications
         if self.request.query_params.get('admin_order'):
             queryset = queryset.order_by('-id')
-        
+
         return queryset
-    
+
     def list(self, request, *args, **kwargs):
         if self.request.query_params.get('category'):
-            self.pagination_class =  FactPaginationWithFilter
+            self.pagination_class = FactPaginationWithFilter
         else:
-            self.pagination_class =  FactPagination
+            self.pagination_class = FactPagination
         response = super(FactViewSet, self).list(request, args, kwargs)
         if self.request.user.is_authenticated:
             fact_list = response.data['results']
@@ -627,6 +626,65 @@ class AnalyticsViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = AnalyticsFilter
     permission_classes = [FullAccessWithoutAuthentication]
+
+
+def create_notification_for_user(user_id, data):
+    title = data.get('title', None)
+    description = data.get('description', None)
+    type = data.get('type', None)
+    closeButton = data.get('closeButton', False)
+    btnOkText = data.get('btnOkText', None)
+    btnCancelText = data.get('btnCancelText', None)
+    isBtnOkLink = data.get('isBtnOkLink', False)
+    btnOkLink = data.get('btnOkLink', None)
+    targetPage = data.get('targetPage', None)
+    user = User.objects.get(id=user_id)
+    notification = AppNotification.objects.create(
+        user=user,
+        title=title,
+        description=description,
+        type=type,
+        closeButton=closeButton,
+        btnOkText=btnOkText,
+        btnCancelText=btnCancelText,
+        isBtnOkLink=isBtnOkLink,
+        btnOkLink=btnOkLink,
+        targetPage=targetPage,
+    )
+
+
+class NotificationViewSet(ModelViewSet):
+    permission_classes = [IsAdminOrNoAccess]
+    serializer_class = NotificationAdminSerializer
+    pagination_class = FactPagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    queryset = AppNotification.objects.all()
+
+    @action(detail=False, methods=['POST'])
+    def create_notification_for_all_users(self, request):
+        if request.data:
+            for user in User.objects.all():
+                create_notification_for_user(user.id, request.data)
+            return Response({'message': 'Notifications are being created for all users.'}, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({'message': 'Message field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MyNotificationViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticatedOrNoAccess]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    serializer_class = NotificationSerializer
+    queryset = AppNotification.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user, read=False)
+    
+    @action(detail=True, methods=['post'])
+    def mark_as_read(self, request, pk=None):
+        notification = self.get_object()
+        notification.read = True
+        notification.save()
+        return Response({'detail': 'Notification marked as read.'}, status=status.HTTP_200_OK)
 
 
 class DailyFactViewSet(ModelViewSet):

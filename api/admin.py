@@ -291,6 +291,16 @@ class AnalyticsAdmin(admin.ModelAdmin):
 
     def _timestamp_xxxxxxxxxxxxx(self, obj):
         return formatted_timestamp(obj.timestamp)
+    
+class AppNotificationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user','type','title','read','_timestamp_xxxxxxxxxxxxx']
+    list_filter = ['type','timestamp']
+    search_fields = ['user__username','title']
+    search_help_text = 'Search in [user] [activity]'
+    list_per_page = 50
+
+    def _timestamp_xxxxxxxxxxxxx(self, obj):
+        return formatted_timestamp(obj.timestamp)
 
 
 admin.site.register(User, UserAdmin)
@@ -306,3 +316,4 @@ admin.site.register(CategoryRequest, CategoryRequestAdmin)
 admin.site.register(ReportFact, ReportFactAdmin)
 admin.site.register(Views, ViewsAdmin)
 admin.site.register(Analytics, AnalyticsAdmin)
+admin.site.register(AppNotification, AppNotificationAdmin)

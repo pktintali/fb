@@ -196,6 +196,19 @@ class AnalyticsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Analytics
         fields = "__all__"
+        
+
+class NotificationAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppNotification
+        fields = "__all__"
+        read_only_fields = ['id', 'created_at']
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppNotification
+        fields = "__all__"
+        read_only_fields = ['id', 'user', 'created_at']
 
 
 def getFactData(fact: str):

@@ -6,6 +6,8 @@ router = routers.DefaultRouter()
 router.register('users', UserViewSet)
 router.register('categories', CategoryViewSet)
 router.register('analytics', AnalyticsViewSet)
+router.register('notifications', NotificationViewSet,basename='notifications')
+router.register('my-notifications', MyNotificationViewSet)
 router.register('facts', FactViewSet)
 router.register('customized-facts', CustomizedFactViewSet,
                 basename='customized-facts')
