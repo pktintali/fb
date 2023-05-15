@@ -16,7 +16,7 @@ from api.models import *
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'premium', 'coins', 'avtar',
+        fields = ['id', 'username', 'email', 'premium', 'coins', 'avtar', 'lang',
                   'shared_fact_counts', 'streak', 'last_seen', 'premium_start_date', 'premium_end_date']
 
 

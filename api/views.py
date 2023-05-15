@@ -238,14 +238,17 @@ class CustomizedFactViewSet(ModelViewSet):
             queryset = Fact.objects.select_related('category').annotate(
                 likes_count=Count('like')).order_by('?').filter(
                 category__in=interests).all()
+
             user_lang = 'english'
             if use_interests.exists():
-                user_lang = use_interests.first().category.language
+                user_lang = random.choice(use_interests).category.language
+            else:
+                user_lang = user.lang
 
             if len(interests) > 15:
                 other_facts = Fact.objects.filter(category__language=user_lang).exclude(
                     category__in=interests
-                ).exclude(category__name='Ad').order_by('?').all()[:20]
+                ).exclude(category__isActive=False).exclude(category__name='Ad').order_by('?').all()[:20]
 
             if len(interests) <= 15 and len(interests) > 3:
                 other_facts = Fact.objects.filter(category__language=user_lang).exclude(
@@ -305,9 +308,11 @@ class CustomizedUniqueFactViewSet(ModelViewSet):
             user_lang = 'english'
             if use_interests.exists():
                 user_lang = random.choice(use_interests).category.language
+            else:
+                user_lang = user.lang
 
             other_facts = Fact.objects.filter(category__language=user_lang).exclude(
-                category__in=interests).exclude(category__name='Ad').exclude(
+                category__in=interests).exclude(category__name='Ad').exclude(category__isActive=False).exclude(
                 id__in=viewed_facts).order_by('?').all()
 
             if len(interests) > 15:
@@ -638,6 +643,7 @@ def create_notification_for_user(user_id, data):
     isBtnOkLink = data.get('isBtnOkLink', False)
     btnOkLink = data.get('btnOkLink', None)
     targetPage = data.get('targetPage', None)
+    isUriLaunch = data.get('isUriLaunch', False)
     user = User.objects.get(id=user_id)
     notification = AppNotification.objects.create(
         user=user,
@@ -650,6 +656,7 @@ def create_notification_for_user(user_id, data):
         isBtnOkLink=isBtnOkLink,
         btnOkLink=btnOkLink,
         targetPage=targetPage,
+        isUriLaunch=isUriLaunch,
     )
 
 
@@ -678,7 +685,7 @@ class MyNotificationViewSet(ModelViewSet):
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user, read=False)
-    
+
     @action(detail=True, methods=['post'])
     def mark_as_read(self, request, pk=None):
         notification = self.get_object()

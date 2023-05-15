@@ -21,8 +21,8 @@ def formatted_timestamp(utc_time):
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ['id', 'username', 'email', '_last_seen_xxxxxxxxxxxxx', '_date_joined_xxxxxxxxxxxxx',
-                    'coins', 'avtar', 'streak', 'shared_fact_counts', 'premium', 'redeemedPremium', 'premium_end_date', 'is_staff', '_last_login_xxxxxxxxxxxxx', ]
-    list_filter = ['last_seen', 'last_login', 'date_joined',
+                    'coins', 'avtar','lang', 'streak', 'shared_fact_counts', 'premium', 'redeemedPremium', 'premium_end_date', 'is_staff', '_last_login_xxxxxxxxxxxxx', ]
+    list_filter = ['last_seen', 'last_login', 'date_joined','lang',
                    'premium', 'redeemedPremium', 'premium_end_date', 'is_staff']
     search_fields = ['username', 'first_name', 'last_name']
     list_per_page = 50
@@ -42,10 +42,10 @@ class UserAdmin(admin.ModelAdmin):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'desc',
+    list_display = ['id', 'name', 'desc','isActive','isSpecial',
                     '_language', 'image_url', 'isPremium']
     list_display_links = ['image_url']
-    list_filter = ['isPremium', 'language']
+    list_filter = ['isPremium', 'language','isActive']
     search_fields = ['desc', 'name']
     list_per_page = 50
 

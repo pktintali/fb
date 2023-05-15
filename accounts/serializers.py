@@ -24,6 +24,8 @@ class CustomUserSerializer(UserDetailsSerializer):
             extra_fields.append('coins')
         if hasattr(UserModel, 'avtar'):
             extra_fields.append('avtar')
+        if hasattr(UserModel, 'lang'):
+            extra_fields.append('lang')
         if hasattr(UserModel, 'streak'):
             extra_fields.append('streak')
         if hasattr(UserModel, 'last_seen'):

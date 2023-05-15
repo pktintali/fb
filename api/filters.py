@@ -9,7 +9,9 @@ class CategoryFilter(FilterSet):
             'name': ['contains'],
             'desc':['contains'],
             'language':['exact'],
-            'isPremium': ['exact']
+            'isPremium': ['exact'],
+            'isActive': ['exact'],
+            'isSpecial': ['exact']
         }
 
 
