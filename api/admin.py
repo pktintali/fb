@@ -20,11 +20,12 @@ def formatted_timestamp(utc_time):
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'email', '_last_seen_xxxxxxxxxxxxx', '_date_joined_xxxxxxxxxxxxx',
-                    'coins', 'avtar','lang', 'streak', 'shared_fact_counts', 'premium', 'redeemedPremium', 'premium_end_date', 'is_staff', '_last_login_xxxxxxxxxxxxx', ]
-    list_filter = ['last_seen', 'last_login', 'date_joined','lang',
-                   'premium', 'redeemedPremium', 'premium_end_date', 'is_staff']
+    list_display = ['id', 'username', '_last_seen_xxxxxxxxxxxxx', '_date_joined_xxxxxxxxxxxxx',
+                    'coins', 'avtar', 'lang', 'streak', 'shared_fact_counts', 'premium', 'redeemedPremium', 'premium_end_date', 'is_staff', '_last_login_xxxxxxxxxxxxx', 'email']
+    list_filter = ['last_seen', 'date_joined', 'lang',
+                   'premium', 'redeemedPremium', 'last_login', 'premium_end_date', 'is_staff']
     search_fields = ['username', 'first_name', 'last_name']
+    search_help_text = 'Search in [username] [first_name] [last_name]'
     list_per_page = 50
 
     def _last_seen_xxxxxxxxxxxxx(self, obj):
@@ -42,10 +43,10 @@ class UserAdmin(admin.ModelAdmin):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'desc','isActive','isSpecial',
+    list_display = ['id', 'name', 'desc', 'isActive', 'isSpecial',
                     '_language', 'image_url', 'isPremium']
     list_display_links = ['image_url']
-    list_filter = ['isPremium', 'language','isActive']
+    list_filter = ['isPremium', 'language', 'isActive']
     search_fields = ['desc', 'name']
     list_per_page = 50
 
@@ -97,7 +98,7 @@ class DailyFactAdmin(admin.ModelAdmin):
 
 
 class BookMarkAdmin(admin.ModelAdmin):
-    list_display = ['id', 'fact', 'category', 'pc', 'user',
+    list_display = ['id', 'fact', 'category', 'pc', 'bkm_user',
                     'pu',  '_timestamp_xxxxxxxxxxxxx']
     list_filter = ['timestamp', 'user__premium',
                    'fact__category__isPremium']
@@ -107,6 +108,9 @@ class BookMarkAdmin(admin.ModelAdmin):
 
     def category(self, obj):
         return obj.fact.category
+
+    def bkm_user(self, obj):
+        return obj.user.username[:15]+'...'
 
     def _timestamp_xxxxxxxxxxxxx(self, obj):
         return formatted_timestamp(obj.timestamp)
@@ -127,7 +131,7 @@ class BookMarkAdmin(admin.ModelAdmin):
 
 
 class LikeAdmin(admin.ModelAdmin):
-    list_display = ['id', 'fact', 'category', 'pc', 'user',
+    list_display = ['id', 'fact', 'category', 'pc', 'like_user',
                     'pu',  '_timestamp_xxxxxxxxxxxxx']
     list_filter = ['timestamp', 'user__premium',
                    'fact__category__isPremium']
@@ -137,6 +141,9 @@ class LikeAdmin(admin.ModelAdmin):
 
     def category(self, obj):
         return obj.fact.category
+
+    def like_user(self, obj):
+        return obj.user.username[:15]+'...'
 
     def _timestamp_xxxxxxxxxxxxx(self, obj):
         return formatted_timestamp(obj.timestamp)
@@ -184,8 +191,8 @@ class UserTaskAdmin(admin.ModelAdmin):
 
 
 class UserInterestAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'premium_user',
-                    'category', 'premium_category', '_timestamp_xxxxxxxxxxxxx']
+    list_display = ['id', 'user',
+                    'category', '_timestamp_xxxxxxxxxxxxx', 'premium_user', 'premium_category', ]
     # list_display_links = []
     list_filter = ['user__premium', 'category__isPremium', 'timestamp']
     search_fields = ['user__username', 'category__name']
@@ -281,22 +288,25 @@ class ViewsAdmin(admin.ModelAdmin):
 
     def _expiry_date_xxxxxxxxxxx(self, obj):
         return formatted_timestamp(obj.expiry_date)
-    
+
+
 class AnalyticsAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user','activity','_timestamp_xxxxxxxxxxxxx']
-    list_filter = ['timestamp','activity']
-    search_fields = ['user__username','activity']
+    list_display = ['id', 'user', 'activity', '_timestamp_xxxxxxxxxxxxx']
+    list_filter = ['timestamp', 'activity']
+    search_fields = ['user__username', 'activity']
     search_help_text = 'Search in [user] [activity]'
     list_per_page = 50
 
     def _timestamp_xxxxxxxxxxxxx(self, obj):
         return formatted_timestamp(obj.timestamp)
-    
+
+
 class AppNotificationAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user','type','title','read','_timestamp_xxxxxxxxxxxxx']
-    list_filter = ['type','timestamp']
-    search_fields = ['user__username','title']
-    search_help_text = 'Search in [user] [activity]'
+    list_display = ['id', 'user', 'type', 'title','targetPage','isBtnOkLink',
+                    'read', '_timestamp_xxxxxxxxxxxxx']
+    list_filter = ['type','read', 'timestamp']
+    search_fields = ['user__username', 'title','desc']
+    search_help_text = 'Search in [user] [title] [desc]'
     list_per_page = 50
 
     def _timestamp_xxxxxxxxxxxxx(self, obj):
